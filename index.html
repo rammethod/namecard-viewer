@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="メンバーのネームカード一覧 - IDをワンクリックでコピー">
+  <title>Name Cards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <!-- Firebase SDK (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+  <style>
+    /* ========== Reset & Base ========== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --bg-card-hover: rgba(255, 255, 255, 0.08);
+      --bg-glass: rgba(255, 255, 255, 0.06);
+      --bg-input: rgba(255, 255, 255, 0.06);
+      --bg-input-focus: rgba(255, 255, 255, 0.1);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --border-card-hover: rgba(255, 255, 255, 0.18);
+      --border-input: rgba(255, 255, 255, 0.12);
+      --border-input-focus: rgba(129, 140, 248, 0.5);
+      --text-primary: #e8e8ed;
+      --text-secondary: #8a8a9a;
+      --text-placeholder: #555566;
+      --text-id: #6ee7b7;
+      --accent-1: #818cf8;
+      --accent-2: #a78bfa;
+      --accent-3: #c084fc;
+      --accent-glow: rgba(129, 140, 248, 0.15);
+      --success: #34d399;
+      --success-glow: rgba(52, 211, 153, 0.25);
+      --danger: #f43f5e;
+      --danger-hover: #e11d48;
+      --danger-glow: rgba(244, 63, 94, 0.2);
+      --overlay: rgba(0, 0, 0, 0.6);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+      --shadow-card-hover: 0 8px 40px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+      --shadow-modal: 0 24px 80px rgba(0, 0, 0, 0.6), 0 8px 24px rgba(0, 0, 0, 0.4);
+      --transition-fast: 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-smooth: 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ========== Animated Background ========== */
+    .bg-gradient {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .bg-gradient::before {
+      content: '';
+      position: absolute;
+      top: -30%; left: -20%;
+      width: 70%; height: 70%;
+      background: radial-gradient(ellipse, rgba(129, 140, 248, 0.08) 0%, transparent 70%);
+      animation: drift1 18s ease-in-out infinite alternate;
+    }
+
+    .bg-gradient::after {
+      content: '';
+      position: absolute;
+      bottom: -20%; right: -15%;
+      width: 60%; height: 60%;
+      background: radial-gradient(ellipse, rgba(192, 132, 252, 0.06) 0%, transparent 70%);
+      animation: drift2 22s ease-in-out infinite alternate;
+    }
+
+    @keyframes drift1 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(15%, 10%) scale(1.15); }
+    }
+    @keyframes drift2 {
+      0% { transform: translate(0, 0) scale(1); }
+      100% { transform: translate(-10%, -15%) scale(1.1); }
+    }
+
+    /* ========== Layout ========== */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    /* ========== Header ========== */
+    .header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-card);
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      backdrop-filter: blur(12px);
+    }
+
+    .header-badge .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success-glow);
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    .header-badge .dot.offline {
+      background: var(--danger);
+      box-shadow: 0 0 8px var(--danger-glow);
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .editable-title {
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      position: relative;
+      transition: opacity var(--transition-fast);
+    }
+
+    .editable-title:hover { opacity: 0.85; }
+
+    .editable-title .edit-hint {
+      display: inline-flex;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      -webkit-text-fill-color: var(--text-secondary);
+    }
+
+    .editable-title:hover .edit-hint { opacity: 1; }
+
+    .editable-title .edit-hint svg {
+      width: 18px; height: 18px;
+    }
+
+    .title-input {
+      font-size: 2.2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+      border: 2px solid var(--border-input-focus);
+      border-radius: var(--radius-sm);
+      padding: 4px 16px;
+      text-align: center;
+      font-family: inherit;
+      outline: none;
+      width: 100%;
+      max-width: 500px;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-bottom: 24px;
+    }
+
+    /* ========== Add Button ========== */
+    .btn-add {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform var(--transition-fast), box-shadow var(--transition-fast), opacity var(--transition-fast);
+      box-shadow: 0 4px 16px rgba(129, 140, 248, 0.3);
+    }
+
+    .btn-add:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px rgba(129, 140, 248, 0.4);
+    }
+
+    .btn-add:active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    .btn-add svg {
+      width: 18px; height: 18px;
+    }
+
+    /* ========== Empty State ========== */
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-secondary);
+    }
+
+    .empty-state .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      opacity: 0.5;
+    }
+
+    .empty-state p {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .empty-state .sub {
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    /* ========== Loading ========== */
+    .loading-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--text-secondary);
+    }
+
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(255,255,255,0.1);
+      border-top-color: var(--accent-1);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ========== Card Grid ========== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+
+    /* ========== Name Card ========== */
+    .name-card {
+      position: relative;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 20px 22px;
+      cursor: pointer;
+      transition:
+        background var(--transition-fast),
+        border-color var(--transition-fast),
+        box-shadow var(--transition-smooth),
+        transform var(--transition-fast);
+      backdrop-filter: blur(16px);
+      overflow: hidden;
+      user-select: none;
+      opacity: 0;
+      transform: translateY(16px);
+      animation: cardIn 0.4s ease forwards;
+    }
+
+    .name-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent-1), var(--accent-2), var(--accent-3));
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+
+    .name-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-card-hover);
+      box-shadow: var(--shadow-card-hover);
+      transform: translateY(-2px);
+    }
+
+    .name-card:hover::before { opacity: 1; }
+
+    .name-card:active {
+      transform: translateY(0) scale(0.985);
+      transition-duration: 0.08s;
+    }
+
+    .name-card.copied {
+      border-color: rgba(52, 211, 153, 0.4);
+      box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.15), var(--shadow-card);
+    }
+
+    .name-card.copied::before {
+      background: var(--success);
+      opacity: 1;
+    }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card-avatar {
+      width: 42px; height: 42px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+      flex-shrink: 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-avatar::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+    }
+
+    .card-info { flex: 1; min-width: 0; }
+
+    .card-name {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-subtitle {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      font-weight: 400;
+      margin-top: 2px;
+    }
+
+    /* Card actions (edit / delete) */
+    .card-actions {
+      position: absolute;
+      top: 10px; right: 10px;
+      display: flex;
+      gap: 4px;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+    }
+
+    .name-card:hover .card-actions { opacity: 1; }
+
+    .card-action-btn {
+      width: 30px; height: 30px;
+      border: none;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.08);
+      color: var(--text-secondary);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast), color var(--transition-fast);
+    }
+
+    .card-action-btn:hover {
+      background: rgba(255,255,255,0.15);
+      color: var(--text-primary);
+    }
+
+    .card-action-btn.delete:hover {
+      background: var(--danger-glow);
+      color: var(--danger);
+    }
+
+    .card-action-btn svg {
+      width: 14px; height: 14px;
+    }
+
+    .card-id-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .card-id {
+      font-family: 'JetBrains Mono', 'Consolas', monospace;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: var(--text-id);
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .copy-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      color: var(--text-secondary);
+      transition: color var(--transition-fast), background var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .name-card:hover .copy-icon {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.06);
+    }
+
+    .name-card.copied .copy-icon { color: var(--success); }
+
+    .copy-icon svg { width: 16px; height: 16px; }
+
+    /* ========== Modal Overlay ========== */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 24px;
+    }
+
+    .modal-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-card-hover);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-modal);
+      transform: translateY(16px) scale(0.96);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .modal-overlay.open .modal {
+      transform: translateY(0) scale(1);
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      color: var(--text-primary);
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 10px 14px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-input);
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.92rem;
+      color: var(--text-primary);
+      outline: none;
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+    }
+
+    .form-input::placeholder { color: var(--text-placeholder); }
+
+    .form-input:focus {
+      background: var(--bg-input-focus);
+      border-color: var(--border-input-focus);
+    }
+
+    /* Color Picker Presets */
+    .color-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .color-swatch {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      transition: border-color var(--transition-fast), transform var(--transition-fast);
+      position: relative;
+    }
+
+    .color-swatch:hover { transform: scale(1.12); }
+
+    .color-swatch.selected {
+      border-color: #fff;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.2);
+    }
+
+    .color-swatch.selected::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 4px;
+      background: inherit;
+    }
+
+    /* Modal Buttons */
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      justify-content: flex-end;
+      margin-top: 28px;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background var(--transition-fast), transform var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    .btn:active { transform: scale(0.96); }
+
+    .btn-cancel {
+      background: rgba(255,255,255,0.08);
+      color: var(--text-secondary);
+    }
+    .btn-cancel:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); }
+
+    .btn-save {
+      background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(129, 140, 248, 0.3);
+    }
+    .btn-save:hover { box-shadow: 0 4px 20px rgba(129, 140, 248, 0.4); }
+
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+      box-shadow: 0 2px 12px var(--danger-glow);
+    }
+    .btn-danger:hover { background: var(--danger-hover); }
+
+    /* ========== Delete Confirm Modal ========== */
+    .confirm-text {
+      font-size: 0.95rem;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+
+    .confirm-name {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    /* ========== Toast ========== */
+    .toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-card-hover);
+      border-radius: var(--radius-sm);
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 999;
+      backdrop-filter: blur(20px);
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+      pointer-events: auto;
+    }
+
+    .toast-check {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: var(--success);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .toast-check svg {
+      width: 12px; height: 12px;
+      color: #0a0a0f;
+    }
+
+    /* ========== Error Banner ========== */
+    .error-banner {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.3);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      color: #fca5a5;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      display: none;
+    }
+
+    .error-banner.show { display: block; }
+
+    .error-banner code {
+      background: rgba(255,255,255,0.08);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+    }
+
+    /* ========== Responsive ========== */
+    @media (max-width: 640px) {
+      .app-container { padding: 32px 16px 64px; }
+      .header h1 { font-size: 1.7rem; }
+      .card-grid { grid-template-columns: 1fr; gap: 12px; }
+      .card-actions { opacity: 1; }
+      .modal { padding: 24px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-gradient"></div>
+
+  <div class="app-container">
+    <header class="header">
+      <div class="header-badge">
+        <span class="dot" id="statusDot"></span>
+        <span id="statusText">CONNECTING</span>
+      </div>
+      <h1 class="editable-title" id="pageTitle" onclick="startEditTitle()" title="クリックして名前を変更">
+        <span id="titleText">Name Cards</span>
+        <span class="edit-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
+      </h1>
+      <input class="title-input" type="text" id="titleInput" maxlength="30" style="display:none;" aria-label="ページタイトル編集">
+      <p>カードをクリックするとIDがコピーされます</p>
+      <button class="btn-add" id="btnAdd" onclick="openAddModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        メンバーを追加
+      </button>
+    </header>
+
+    <!-- Error Banner (Firebase未設定時) -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Loading -->
+    <div class="loading-state" id="loadingState">
+      <div class="spinner"></div>
+      <p>データを読み込み中...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="empty-icon">📋</div>
+      <p>まだメンバーが登録されていません</p>
+      <p class="sub">上の「メンバーを追加」ボタンから登録できます</p>
+    </div>
+
+    <!-- Card Grid -->
+    <div class="card-grid" id="cardGrid"></div>
+  </div>
+
+  <!-- Add / Edit Modal -->
+  <div class="modal-overlay" id="editModal">
+    <div class="modal">
+      <div class="modal-title" id="modalTitle">メンバーを追加</div>
+      <form id="memberForm" onsubmit="saveMember(event)">
+        <input type="hidden" id="editKey" value="">
+        <div class="form-group">
+          <label class="form-label" for="inputName">名前</label>
+          <input class="form-input" type="text" id="inputName" placeholder="例: 天城 遥斗" required maxlength="50">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputId">ID</label>
+          <input class="form-input" type="text" id="inputId" placeholder="例: AMAGI#7291" required maxlength="60">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="inputSubtitle">役職 / メモ（任意）</label>
+          <input class="form-input" type="text" id="inputSubtitle" placeholder="例: リーダー" maxlength="40">
+        </div>
+        <div class="form-group">
+          <label class="form-label">カラー</label>
+          <div class="color-presets" id="colorPresets"></div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn btn-cancel" type="button" onclick="closeModal('editModal')">キャンセル</button>
+          <button class="btn btn-save" type="submit">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+      <div class="modal-title">メンバーを削除</div>
+      <p class="confirm-text">
+        <span class="confirm-name" id="deleteName"></span> を削除しますか？<br>この操作は元に戻せません。
+      </p>
+      <input type="hidden" id="deleteKey" value="">
+      <div class="modal-actions">
+        <button class="btn btn-cancel" type="button" onclick="closeModal('deleteModal')">キャンセル</button>
+        <button class="btn btn-danger" type="button" onclick="confirmDelete()">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <div class="toast-check">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <span id="toastMsg">完了</span>
+  </div>
+
+  <script>
+    // ============================================================
+    //  Firebase 設定
+    //  ★★★ 以下をあなたの Firebase プロジェクトの値に書き換えてください ★★★
+    // ============================================================
+    const firebaseConfig = {
+      apiKey:            "AIzaSyCducuGe87lyMAloGbciWd0WJZvEyFmS9k",
+      authDomain:        "wanted-815de.firebaseapp.com",
+      databaseURL:       "https://wanted-815de-default-rtdb.firebaseio.com",
+      projectId:         "wanted-815de",
+      storageBucket:     "wanted-815de.firebasestorage.app",
+      messagingSenderId: "269107410785",
+      appId:             "1:269107410785:web:447aa03d18cebaf4047720"
+    };
+
+    // ============================================================
+    //  Constants
+    // ============================================================
+    const PRESET_COLORS = [
+      '#6366f1', '#818cf8', '#8b5cf6', '#a78bfa', '#c084fc',
+      '#ec4899', '#f43f5e', '#fb923c', '#f59e0b', '#eab308',
+      '#a3e635', '#22c55e', '#14b8a6', '#06b6d4', '#0ea5e9',
+    ];
+
+    const ICON_COPY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>`;
+
+    const ICON_CHECK = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"></polyline>
+    </svg>`;
+
+    const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+    </svg>`;
+
+    const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"></polyline>
+      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+    </svg>`;
+
+    // ============================================================
+    //  State
+    // ============================================================
+    let db = null;
+    let membersRef = null;
+    let settingsRef = null;
+    let selectedColor = PRESET_COLORS[0];
+    let toastTimer = null;
+
+    // ============================================================
+    //  Init
+    // ============================================================
+    function init() {
+      renderColorPresets();
+
+      // Check if Firebase is configured
+      if (firebaseConfig.apiKey === 'YOUR_API_KEY') {
+        showError('Firebase が未設定です。<code>index.html</code> 内の <code>firebaseConfig</code> を書き換えてください。詳しくは README を参照してください。');
+        document.getElementById('loadingState').style.display = 'none';
+        return;
+      }
+
+      try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        membersRef = db.ref('members');
+        settingsRef = db.ref('settings');
+
+        // Connection status
+        db.ref('.info/connected').on('value', (snap) => {
+          const dot = document.getElementById('statusDot');
+          const text = document.getElementById('statusText');
+          if (snap.val() === true) {
+            dot.classList.remove('offline');
+            text.textContent = 'MEMBER DIRECTORY';
+          } else {
+            dot.classList.add('offline');
+            text.textContent = 'OFFLINE';
+          }
+        });
+
+        // Listen for settings (page title)
+        settingsRef.child('title').on('value', (snap) => {
+          const title = snap.val();
+          if (title) {
+            document.getElementById('titleText').textContent = title;
+            document.title = title;
+          }
+        });
+
+        // Listen for data
+        membersRef.on('value', (snapshot) => {
+          document.getElementById('loadingState').style.display = 'none';
+          const data = snapshot.val();
+          renderCards(data);
+        }, (error) => {
+          document.getElementById('loadingState').style.display = 'none';
+          showError('データの読み込みに失敗しました: ' + error.message);
+        });
+
+      } catch (e) {
+        showError('Firebase の初期化に失敗しました: ' + e.message);
+        document.getElementById('loadingState').style.display = 'none';
+      }
+    }
+
+    // ============================================================
+    //  Render
+    // ============================================================
+    function getInitials(name) {
+      const parts = name.split(/[\s\u3000]+/);
+      if (parts.length >= 2) return parts[0].charAt(0) + parts[1].charAt(0);
+      return name.slice(0, 2);
+    }
+
+    function renderCards(data) {
+      const grid = document.getElementById('cardGrid');
+      const empty = document.getElementById('emptyState');
+      grid.innerHTML = '';
+
+      if (!data || Object.keys(data).length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+
+      const entries = Object.entries(data).sort((a, b) => {
+        return (a[1].order || 0) - (b[1].order || 0);
+      });
+
+      entries.forEach(([key, member], i) => {
+        const card = document.createElement('div');
+        card.className = 'name-card';
+        card.style.animationDelay = `${i * 0.05}s`;
+        card.id = `card-${key}`;
+
+        const color = member.color || PRESET_COLORS[0];
+        const subtitle = member.subtitle || '';
+
+        card.innerHTML = `
+          <div class="card-actions">
+            <button class="card-action-btn edit" onclick="event.stopPropagation(); openEditModal('${key}')" title="編集" aria-label="${member.name}を編集">
+              ${ICON_EDIT}
+            </button>
+            <button class="card-action-btn delete" onclick="event.stopPropagation(); openDeleteModal('${key}', '${member.name.replace(/'/g, "\\'")}')" title="削除" aria-label="${member.name}を削除">
+              ${ICON_DELETE}
+            </button>
+          </div>
+          <div class="card-top">
+            <div class="card-avatar" style="background: ${color}">
+              ${getInitials(member.name)}
+            </div>
+            <div class="card-info">
+              <div class="card-name">${escapeHtml(member.name)}</div>
+              ${subtitle ? `<div class="card-subtitle">${escapeHtml(subtitle)}</div>` : ''}
+            </div>
+          </div>
+          <div class="card-id-row">
+            <span class="card-id">${escapeHtml(member.gameId)}</span>
+            <div class="copy-icon">${ICON_COPY}</div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => copyId(card, member));
+        grid.appendChild(card);
+      });
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    // ============================================================
+    //  Color Presets
+    // ============================================================
+    function renderColorPresets() {
+      const container = document.getElementById('colorPresets');
+      container.innerHTML = '';
+      PRESET_COLORS.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch' + (color === selectedColor ? ' selected' : '');
+        swatch.style.background = color;
+        swatch.addEventListener('click', () => selectColor(color));
+        container.appendChild(swatch);
+      });
+    }
+
+    function selectColor(color) {
+      selectedColor = color;
+      document.querySelectorAll('.color-swatch').forEach(s => {
+        s.classList.toggle('selected', s.style.background === color || s.style.backgroundColor === color);
+      });
+    }
+
+    // ============================================================
+    //  Modal
+    // ============================================================
+    function openAddModal() {
+      document.getElementById('modalTitle').textContent = 'メンバーを追加';
+      document.getElementById('editKey').value = '';
+      document.getElementById('inputName').value = '';
+      document.getElementById('inputId').value = '';
+      document.getElementById('inputSubtitle').value = '';
+      selectedColor = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
+      renderColorPresets();
+      openModal('editModal');
+      setTimeout(() => document.getElementById('inputName').focus(), 100);
+    }
+
+    function openEditModal(key) {
+      membersRef.child(key).once('value', (snap) => {
+        const m = snap.val();
+        if (!m) return;
+        document.getElementById('modalTitle').textContent = 'メンバーを編集';
+        document.getElementById('editKey').value = key;
+        document.getElementById('inputName').value = m.name || '';
+        document.getElementById('inputId').value = m.gameId || '';
+        document.getElementById('inputSubtitle').value = m.subtitle || '';
+        selectedColor = m.color || PRESET_COLORS[0];
+        renderColorPresets();
+        openModal('editModal');
+        setTimeout(() => document.getElementById('inputName').focus(), 100);
+      });
+    }
+
+    function openDeleteModal(key, name) {
+      document.getElementById('deleteKey').value = key;
+      document.getElementById('deleteName').textContent = name;
+      openModal('deleteModal');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      document.body.style.overflow = '';
+    }
+
+    // Close modals on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(overlay => {
+      overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeModal(overlay.id);
+      });
+    });
+
+    // Close modals on Escape
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        document.querySelectorAll('.modal-overlay.open').forEach(m => closeModal(m.id));
+      }
+    });
+
+    // ============================================================
+    //  CRUD
+    // ============================================================
+    function saveMember(e) {
+      e.preventDefault();
+      const key = document.getElementById('editKey').value;
+      const name = document.getElementById('inputName').value.trim();
+      const gameId = document.getElementById('inputId').value.trim();
+      const subtitle = document.getElementById('inputSubtitle').value.trim();
+
+      if (!name || !gameId) return;
+
+      const data = {
+        name,
+        gameId,
+        subtitle,
+        color: selectedColor,
+        updatedAt: Date.now()
+      };
+
+      if (key) {
+        // Update
+        membersRef.child(key).update(data)
+          .then(() => {
+            closeModal('editModal');
+            showToast(`${name} を更新しました`);
+          })
+          .catch(err => showToast('エラー: ' + err.message));
+      } else {
+        // Add
+        data.order = Date.now();
+        membersRef.push(data)
+          .then(() => {
+            closeModal('editModal');
+            showToast(`${name} を追加しました`);
+          })
+          .catch(err => showToast('エラー: ' + err.message));
+      }
+    }
+
+    function confirmDelete() {
+      const key = document.getElementById('deleteKey').value;
+      const name = document.getElementById('deleteName').textContent;
+      if (!key) return;
+
+      membersRef.child(key).remove()
+        .then(() => {
+          closeModal('deleteModal');
+          showToast(`${name} を削除しました`);
+        })
+        .catch(err => showToast('エラー: ' + err.message));
+    }
+
+    // ============================================================
+    //  Copy
+    // ============================================================
+    async function copyId(cardEl, member) {
+      try {
+        await navigator.clipboard.writeText(member.gameId);
+      } catch {
+        const ta = document.createElement('textarea');
+        ta.value = member.gameId;
+        ta.style.cssText = 'position:fixed;opacity:0;';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+      }
+
+      const icon = cardEl.querySelector('.copy-icon');
+      icon.innerHTML = ICON_CHECK;
+      cardEl.classList.add('copied');
+      setTimeout(() => {
+        icon.innerHTML = ICON_COPY;
+        cardEl.classList.remove('copied');
+      }, 1800);
+
+      showToast(`${member.name} のIDをコピーしました`);
+    }
+
+    // ============================================================
+    //  Toast / Error
+    // ============================================================
+    function showToast(msg) {
+      const toast = document.getElementById('toast');
+      document.getElementById('toastMsg').textContent = msg;
+      if (toastTimer) clearTimeout(toastTimer);
+      toast.classList.add('show');
+      toastTimer = setTimeout(() => {
+        toast.classList.remove('show');
+        toastTimer = null;
+      }, 2200);
+    }
+
+    function showError(html) {
+      const banner = document.getElementById('errorBanner');
+      banner.innerHTML = html;
+      banner.classList.add('show');
+    }
+
+    // ============================================================
+    //  Title Edit
+    // ============================================================
+    function startEditTitle() {
+      const titleEl = document.getElementById('pageTitle');
+      const input = document.getElementById('titleInput');
+      const currentTitle = document.getElementById('titleText').textContent;
+
+      titleEl.style.display = 'none';
+      input.style.display = 'block';
+      input.value = currentTitle;
+      input.focus();
+      input.select();
+
+      input.onblur = () => saveTitle();
+      input.onkeydown = (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); saveTitle(); }
+        if (e.key === 'Escape') { cancelEditTitle(); }
+      };
+    }
+
+    function saveTitle() {
+      const titleEl = document.getElementById('pageTitle');
+      const input = document.getElementById('titleInput');
+      const newTitle = input.value.trim();
+
+      input.onblur = null;
+      input.style.display = 'none';
+      titleEl.style.display = '';
+
+      if (newTitle && settingsRef) {
+        settingsRef.child('title').set(newTitle)
+          .then(() => showToast('タイトルを変更しました'))
+          .catch(err => showToast('エラー: ' + err.message));
+      }
+    }
+
+    function cancelEditTitle() {
+      const titleEl = document.getElementById('pageTitle');
+      const input = document.getElementById('titleInput');
+      input.onblur = null;
+      input.style.display = 'none';
+      titleEl.style.display = '';
+    }
+
+    // ============================================================
+    //  Boot
+    // ============================================================
+    init();
+  </script>
+</body>
+</html>
