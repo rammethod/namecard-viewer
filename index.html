@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="メンバーのネームカード一覧 - IDをワンクリックでコピー">
+  <meta name="description" content="繝｡繝ｳ繝舌・縺ｮ繝阪・繝繧ｫ繝ｼ繝我ｸ隕ｧ - ID繧偵Ρ繝ｳ繧ｯ繝ｪ繝・け縺ｧ繧ｳ繝斐・">
   <title>Name Cards</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -481,6 +481,38 @@
 
     .copy-icon svg { width: 16px; height: 16px; }
 
+    /* Card Profile Link Button */
+    .card-link-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      width: 100%;
+      padding: 8px 12px;
+      margin-top: 8px;
+      background: rgba(129, 140, 248, 0.1);
+      border: 1px solid rgba(129, 140, 248, 0.2);
+      border-radius: var(--radius-sm);
+      color: var(--accent-1);
+      font-family: inherit;
+      font-size: 0.78rem;
+      font-weight: 500;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+    }
+
+    .card-link-btn:hover {
+      background: rgba(129, 140, 248, 0.18);
+      border-color: rgba(129, 140, 248, 0.35);
+      color: var(--accent-2);
+    }
+
+    .card-link-btn svg {
+      width: 13px; height: 13px;
+      flex-shrink: 0;
+    }
+
     /* ========== Modal Overlay ========== */
     .modal-overlay {
       position: fixed;
@@ -731,35 +763,35 @@
         <span class="dot" id="statusDot"></span>
         <span id="statusText">CONNECTING</span>
       </div>
-      <h1 class="editable-title" id="pageTitle" onclick="startEditTitle()" title="クリックして名前を変更">
+      <h1 class="editable-title" id="pageTitle" onclick="startEditTitle()" title="繧ｯ繝ｪ繝・け縺励※蜷榊燕繧貞､画峩">
         <span id="titleText">Name Cards</span>
         <span class="edit-hint"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></span>
       </h1>
-      <input class="title-input" type="text" id="titleInput" maxlength="30" style="display:none;" aria-label="ページタイトル編集">
-      <p>カードをクリックするとIDがコピーされます</p>
+      <input class="title-input" type="text" id="titleInput" maxlength="30" style="display:none;" aria-label="繝壹・繧ｸ繧ｿ繧､繝医Ν邱ｨ髮・>
+      <p>繧ｫ繝ｼ繝峨ｒ繧ｯ繝ｪ繝・け縺吶ｋ縺ｨID縺後さ繝斐・縺輔ｌ縺ｾ縺・/p>
       <button class="btn-add" id="btnAdd" onclick="openAddModal()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
           <line x1="12" y1="5" x2="12" y2="19"></line>
           <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        メンバーを追加
+        繝｡繝ｳ繝舌・繧定ｿｽ蜉
       </button>
     </header>
 
-    <!-- Error Banner (Firebase未設定時) -->
+    <!-- Error Banner (Firebase譛ｪ險ｭ螳壽凾) -->
     <div class="error-banner" id="errorBanner"></div>
 
     <!-- Loading -->
     <div class="loading-state" id="loadingState">
       <div class="spinner"></div>
-      <p>データを読み込み中...</p>
+      <p>繝・・繧ｿ繧定ｪｭ縺ｿ霎ｼ縺ｿ荳ｭ...</p>
     </div>
 
     <!-- Empty State -->
     <div class="empty-state" id="emptyState" style="display:none;">
-      <div class="empty-icon">📋</div>
-      <p>まだメンバーが登録されていません</p>
-      <p class="sub">上の「メンバーを追加」ボタンから登録できます</p>
+      <div class="empty-icon">搭</div>
+      <p>縺ｾ縺繝｡繝ｳ繝舌・縺檎匳骭ｲ縺輔ｌ縺ｦ縺・∪縺帙ｓ</p>
+      <p class="sub">荳翫・縲後Γ繝ｳ繝舌・繧定ｿｽ蜉縲阪・繧ｿ繝ｳ縺九ｉ逋ｻ骭ｲ縺ｧ縺阪∪縺・/p>
     </div>
 
     <!-- Card Grid -->
@@ -769,28 +801,32 @@
   <!-- Add / Edit Modal -->
   <div class="modal-overlay" id="editModal">
     <div class="modal">
-      <div class="modal-title" id="modalTitle">メンバーを追加</div>
+      <div class="modal-title" id="modalTitle">繝｡繝ｳ繝舌・繧定ｿｽ蜉</div>
       <form id="memberForm" onsubmit="saveMember(event)">
         <input type="hidden" id="editKey" value="">
         <div class="form-group">
-          <label class="form-label" for="inputName">名前</label>
-          <input class="form-input" type="text" id="inputName" placeholder="例: 天城 遥斗" required maxlength="50">
+          <label class="form-label" for="inputName">蜷榊燕</label>
+          <input class="form-input" type="text" id="inputName" placeholder="萓・ 螟ｩ蝓・驕･譁・ required maxlength="50">
         </div>
         <div class="form-group">
           <label class="form-label" for="inputId">ID</label>
-          <input class="form-input" type="text" id="inputId" placeholder="例: AMAGI#7291" required maxlength="60">
+          <input class="form-input" type="text" id="inputId" placeholder="萓・ AMAGI#7291" required maxlength="60">
         </div>
         <div class="form-group">
-          <label class="form-label" for="inputSubtitle">役職 / メモ（任意）</label>
-          <input class="form-input" type="text" id="inputSubtitle" placeholder="例: リーダー" maxlength="40">
+          <label class="form-label" for="inputSubtitle">蠖ｹ閨ｷ / 繝｡繝｢・井ｻｻ諢擾ｼ・/label>
+          <input class="form-input" type="text" id="inputSubtitle" placeholder="萓・ 繝ｪ繝ｼ繝繝ｼ" maxlength="40">
         </div>
         <div class="form-group">
-          <label class="form-label">カラー</label>
+          <label class="form-label" for="inputProfileUrl">繝励Ο繝輔ぅ繝ｼ繝ｫ URL・井ｻｻ諢擾ｼ・/label>
+          <input class="form-input" type="url" id="inputProfileUrl" placeholder="萓・ https://example.com/player/12345" maxlength="500">
+        </div>
+        <div class="form-group">
+          <label class="form-label">繧ｫ繝ｩ繝ｼ</label>
           <div class="color-presets" id="colorPresets"></div>
         </div>
         <div class="modal-actions">
-          <button class="btn btn-cancel" type="button" onclick="closeModal('editModal')">キャンセル</button>
-          <button class="btn btn-save" type="submit">保存</button>
+          <button class="btn btn-cancel" type="button" onclick="closeModal('editModal')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
+          <button class="btn btn-save" type="submit">菫晏ｭ・/button>
         </div>
       </form>
     </div>
@@ -799,14 +835,13 @@
   <!-- Delete Confirm Modal -->
   <div class="modal-overlay" id="deleteModal">
     <div class="modal">
-      <div class="modal-title">メンバーを削除</div>
+      <div class="modal-title">繝｡繝ｳ繝舌・繧貞炎髯､</div>
       <p class="confirm-text">
-        <span class="confirm-name" id="deleteName"></span> を削除しますか？<br>この操作は元に戻せません。
-      </p>
+        <span class="confirm-name" id="deleteName"></span> 繧貞炎髯､縺励∪縺吶°・・br>縺薙・謫堺ｽ懊・蜈・↓謌ｻ縺帙∪縺帙ｓ縲・      </p>
       <input type="hidden" id="deleteKey" value="">
       <div class="modal-actions">
-        <button class="btn btn-cancel" type="button" onclick="closeModal('deleteModal')">キャンセル</button>
-        <button class="btn btn-danger" type="button" onclick="confirmDelete()">削除する</button>
+        <button class="btn btn-cancel" type="button" onclick="closeModal('deleteModal')">繧ｭ繝｣繝ｳ繧ｻ繝ｫ</button>
+        <button class="btn btn-danger" type="button" onclick="confirmDelete()">蜑企勁縺吶ｋ</button>
       </div>
     </div>
   </div>
@@ -818,14 +853,12 @@
         <polyline points="20 6 9 17 4 12"></polyline>
       </svg>
     </div>
-    <span id="toastMsg">完了</span>
+    <span id="toastMsg">螳御ｺ・/span>
   </div>
 
   <script>
     // ============================================================
-    //  Firebase 設定
-    //  ★★★ 以下をあなたの Firebase プロジェクトの値に書き換えてください ★★★
-    // ============================================================
+    //  Firebase 險ｭ螳・    //  笘・・笘・莉･荳九ｒ縺ゅ↑縺溘・ Firebase 繝励Ο繧ｸ繧ｧ繧ｯ繝医・蛟､縺ｫ譖ｸ縺肴鋤縺医※縺上□縺輔＞ 笘・・笘・    // ============================================================
     const firebaseConfig = {
       apiKey:            "AIzaSyCducuGe87lyMAloGbciWd0WJZvEyFmS9k",
       authDomain:        "wanted-815de.firebaseapp.com",
@@ -864,6 +897,12 @@
       <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
     </svg>`;
 
+    const ICON_EXTERNAL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+      <polyline points="15 3 21 3 21 9"></polyline>
+      <line x1="10" y1="14" x2="21" y2="3"></line>
+    </svg>`;
+
     // ============================================================
     //  State
     // ============================================================
@@ -881,7 +920,7 @@
 
       // Check if Firebase is configured
       if (firebaseConfig.apiKey === 'YOUR_API_KEY') {
-        showError('Firebase が未設定です。<code>index.html</code> 内の <code>firebaseConfig</code> を書き換えてください。詳しくは README を参照してください。');
+        showError('Firebase 縺梧悴險ｭ螳壹〒縺吶・code>index.html</code> 蜀・・ <code>firebaseConfig</code> 繧呈嶌縺肴鋤縺医※縺上□縺輔＞縲りｩｳ縺励￥縺ｯ README 繧貞盾辣ｧ縺励※縺上□縺輔＞縲・);
         document.getElementById('loadingState').style.display = 'none';
         return;
       }
@@ -921,11 +960,11 @@
           renderCards(data);
         }, (error) => {
           document.getElementById('loadingState').style.display = 'none';
-          showError('データの読み込みに失敗しました: ' + error.message);
+          showError('繝・・繧ｿ縺ｮ隱ｭ縺ｿ霎ｼ縺ｿ縺ｫ螟ｱ謨励＠縺ｾ縺励◆: ' + error.message);
         });
 
       } catch (e) {
-        showError('Firebase の初期化に失敗しました: ' + e.message);
+        showError('Firebase 縺ｮ蛻晄悄蛹悶↓螟ｱ謨励＠縺ｾ縺励◆: ' + e.message);
         document.getElementById('loadingState').style.display = 'none';
       }
     }
@@ -963,13 +1002,18 @@
 
         const color = member.color || PRESET_COLORS[0];
         const subtitle = member.subtitle || '';
+        const profileUrl = member.profileUrl || '';
+
+        const linkBtnHtml = profileUrl
+          ? `<a class="card-link-btn" href="${escapeHtml(profileUrl)}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()">${ICON_EXTERNAL} 繝励Ο繝輔ぅ繝ｼ繝ｫ繧定ｦ九ｋ</a>`
+          : '';
 
         card.innerHTML = `
           <div class="card-actions">
-            <button class="card-action-btn edit" onclick="event.stopPropagation(); openEditModal('${key}')" title="編集" aria-label="${member.name}を編集">
+            <button class="card-action-btn edit" onclick="event.stopPropagation(); openEditModal('${key}')" title="邱ｨ髮・ aria-label="${member.name}繧堤ｷｨ髮・>
               ${ICON_EDIT}
             </button>
-            <button class="card-action-btn delete" onclick="event.stopPropagation(); openDeleteModal('${key}', '${member.name.replace(/'/g, "\\'")}')" title="削除" aria-label="${member.name}を削除">
+            <button class="card-action-btn delete" onclick="event.stopPropagation(); openDeleteModal('${key}', '${member.name.replace(/'/g, "\\'")}')" title="蜑企勁" aria-label="${member.name}繧貞炎髯､">
               ${ICON_DELETE}
             </button>
           </div>
@@ -986,6 +1030,7 @@
             <span class="card-id">${escapeHtml(member.gameId)}</span>
             <div class="copy-icon">${ICON_COPY}</div>
           </div>
+          ${linkBtnHtml}
         `;
 
         card.addEventListener('click', () => copyId(card, member));
@@ -1025,11 +1070,12 @@
     //  Modal
     // ============================================================
     function openAddModal() {
-      document.getElementById('modalTitle').textContent = 'メンバーを追加';
+      document.getElementById('modalTitle').textContent = '繝｡繝ｳ繝舌・繧定ｿｽ蜉';
       document.getElementById('editKey').value = '';
       document.getElementById('inputName').value = '';
       document.getElementById('inputId').value = '';
       document.getElementById('inputSubtitle').value = '';
+      document.getElementById('inputProfileUrl').value = '';
       selectedColor = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
       renderColorPresets();
       openModal('editModal');
@@ -1040,11 +1086,12 @@
       membersRef.child(key).once('value', (snap) => {
         const m = snap.val();
         if (!m) return;
-        document.getElementById('modalTitle').textContent = 'メンバーを編集';
+        document.getElementById('modalTitle').textContent = '繝｡繝ｳ繝舌・繧堤ｷｨ髮・;
         document.getElementById('editKey').value = key;
         document.getElementById('inputName').value = m.name || '';
         document.getElementById('inputId').value = m.gameId || '';
         document.getElementById('inputSubtitle').value = m.subtitle || '';
+        document.getElementById('inputProfileUrl').value = m.profileUrl || '';
         selectedColor = m.color || PRESET_COLORS[0];
         renderColorPresets();
         openModal('editModal');
@@ -1091,6 +1138,7 @@
       const name = document.getElementById('inputName').value.trim();
       const gameId = document.getElementById('inputId').value.trim();
       const subtitle = document.getElementById('inputSubtitle').value.trim();
+      const profileUrl = document.getElementById('inputProfileUrl').value.trim();
 
       if (!name || !gameId) return;
 
@@ -1098,6 +1146,7 @@
         name,
         gameId,
         subtitle,
+        profileUrl,
         color: selectedColor,
         updatedAt: Date.now()
       };
@@ -1107,18 +1156,18 @@
         membersRef.child(key).update(data)
           .then(() => {
             closeModal('editModal');
-            showToast(`${name} を更新しました`);
+            showToast(`${name} 繧呈峩譁ｰ縺励∪縺励◆`);
           })
-          .catch(err => showToast('エラー: ' + err.message));
+          .catch(err => showToast('繧ｨ繝ｩ繝ｼ: ' + err.message));
       } else {
         // Add
         data.order = Date.now();
         membersRef.push(data)
           .then(() => {
             closeModal('editModal');
-            showToast(`${name} を追加しました`);
+            showToast(`${name} 繧定ｿｽ蜉縺励∪縺励◆`);
           })
-          .catch(err => showToast('エラー: ' + err.message));
+          .catch(err => showToast('繧ｨ繝ｩ繝ｼ: ' + err.message));
       }
     }
 
@@ -1130,9 +1179,9 @@
       membersRef.child(key).remove()
         .then(() => {
           closeModal('deleteModal');
-          showToast(`${name} を削除しました`);
+          showToast(`${name} 繧貞炎髯､縺励∪縺励◆`);
         })
-        .catch(err => showToast('エラー: ' + err.message));
+        .catch(err => showToast('繧ｨ繝ｩ繝ｼ: ' + err.message));
     }
 
     // ============================================================
@@ -1159,7 +1208,7 @@
         cardEl.classList.remove('copied');
       }, 1800);
 
-      showToast(`${member.name} のIDをコピーしました`);
+      showToast(`${member.name} 縺ｮID繧偵さ繝斐・縺励∪縺励◆`);
     }
 
     // ============================================================
@@ -1214,8 +1263,8 @@
 
       if (newTitle && settingsRef) {
         settingsRef.child('title').set(newTitle)
-          .then(() => showToast('タイトルを変更しました'))
-          .catch(err => showToast('エラー: ' + err.message));
+          .then(() => showToast('繧ｿ繧､繝医Ν繧貞､画峩縺励∪縺励◆'))
+          .catch(err => showToast('繧ｨ繝ｩ繝ｼ: ' + err.message));
       }
     }
 
