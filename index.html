@@ -1191,17 +1191,19 @@
       }
 
       .last-seen-badge {
-        font-size: 0.62rem;
-        padding: 2px 6px;
+        font-size: 0.58rem;
+        padding: 2px 4px;
         margin-bottom: 4px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         max-width: 100%;
+        line-height: 1.25;
+        text-align: center;
       }
 
       .last-seen-badge span {
-        display: none !important; /* モバイルでは詳細日時(YYYY/MM/DD)を非表示にしてスッキリ納める */
+        display: inline-block !important; /* スマホでも詳細日時(YYYY/MM/DD HH:mm)を表示 */
+        font-size: 0.52rem !important;
+        opacity: 0.85;
+        margin-left: 2px;
       }
 
       .stats-info-grid {
@@ -2052,7 +2054,7 @@
         const rankEl = container.querySelector('.val-rank');
         if (rankEl) rankEl.textContent = stats.danRank || '-';
         const ratingEl = container.querySelector('.val-rating');
-        if (ratingEl) ratingEl.textContent = stats.ratingMu ? `μ ${stats.ratingMu}` : '-';
+        if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : '-';
         const powerEl = container.querySelector('.val-power');
         if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
 
@@ -2155,7 +2157,7 @@
               </div>
               <div class="stats-info-item">
                 <span class="stats-info-label">Rating:</span>
-                <span class="stats-info-val val-rating" style="color:var(--gold-accent); font-weight:800; font-size:0.88rem;">${cachedStats && cachedStats.ratingMu !== null ? 'μ ' + cachedStats.ratingMu : 'データ取得中'}</span>
+                <span class="stats-info-val val-rating" style="color:var(--gold-accent); font-weight:800; font-size:0.88rem;">${cachedStats && cachedStats.ratingMu !== null ? `μ ${cachedStats.ratingMu} (${cachedStats.mainChar || ''})` : 'データ取得中'}</span>
               </div>
               <div class="stats-info-item">
                 <span class="stats-info-label">Power:</span>
@@ -2204,7 +2206,7 @@
               const rankEl = container.querySelector('.val-rank');
               if (rankEl) rankEl.textContent = stats.danRank || '-';
               const ratingEl = container.querySelector('.val-rating');
-              if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu}` : 'データ取得中';
+              if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : 'データ取得中';
               const powerEl = container.querySelector('.val-power');
               if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
             }
