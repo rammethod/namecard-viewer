@@ -235,7 +235,7 @@
       box-shadow: 0 0 8px #ef4444;
     }
 
-    /* 画面右上固定 (position: fixed) UI Theme Select Box */
+    /* 画面右上固定 UI Theme Select Box */
     .theme-select-box {
       position: fixed;
       top: 16px;
@@ -434,7 +434,7 @@
         linear-gradient(135deg, rgba(140,106,70,0.15) 0%, transparent 100%);
       border: 2px solid var(--parchment-border);
       border-radius: 2px;
-      padding: 24px 20px 20px;
+      padding: 24px 20px 16px;
       box-shadow: 0 12px 28px rgba(0,0,0,0.7);
       transform: rotate(calc(var(--rand-deg, 0) * 1deg));
     }
@@ -449,7 +449,7 @@
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 16px;
-      padding: 20px;
+      padding: 20px 20px 16px;
       backdrop-filter: blur(16px);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
@@ -465,7 +465,7 @@
       background: linear-gradient(180deg, #4338ca 0%, #312e81 100%);
       border: 1.5px solid rgba(199, 210, 254, 0.5);
       border-radius: 16px 16px 28px 28px;
-      padding: 24px 20px 20px;
+      padding: 24px 20px 16px;
       box-shadow: 0 12px 32px rgba(49, 46, 129, 0.35);
       color: #ffffff;
     }
@@ -723,35 +723,58 @@
       fill: currentColor;
     }
 
-    .card-admin-actions {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      display: flex;
-      gap: 4px;
-      opacity: 0;
-      transition: opacity 0.2s ease;
-      z-index: 6;
-    }
-
-    .poster-card:hover .card-admin-actions { opacity: 1; }
-
-    .admin-icon-btn {
-      width: 26px;
-      height: 26px;
-      border-radius: 4px;
-      border: 1px solid var(--text-ink);
-      background: rgba(255,255,255,0.8);
-      color: #111;
-      cursor: pointer;
+    /* ★カード表のデザインに絶対被らないスマートな最下部管理バー★ */
+    .card-admin-bar {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 8px;
+      border-top: 1px dashed rgba(0,0,0,0.12);
     }
 
-    .admin-icon-btn:hover { background: #fff; }
-    .admin-icon-btn.delete:hover { background: #ef4444; color: #fff; }
-    .admin-icon-btn svg { width: 12px; height: 12px; }
+    body.theme-modern .card-admin-bar { border-top-color: rgba(255,255,255,0.08); }
+    body.theme-japanese .card-admin-bar { border-top-color: rgba(255,255,255,0.15); }
+
+    .card-admin-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 3px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(0,0,0,0.15);
+      background: rgba(255,255,255,0.6);
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #2b1a0e;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    body.theme-modern .card-admin-btn {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.15);
+      color: #e8e8ed;
+    }
+
+    body.theme-japanese .card-admin-btn {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.3);
+      color: #ffffff;
+    }
+
+    .card-admin-btn:hover { background: #fff; color: #000; }
+    body.theme-modern .card-admin-btn:hover { background: rgba(255,255,255,0.25); color: #fff; }
+    body.theme-japanese .card-admin-btn:hover { background: rgba(255,255,255,0.35); color: #fff; }
+
+    .card-admin-btn.delete-btn { color: #b91c1c; border-color: rgba(185,28,28,0.3); }
+    body.theme-modern .card-admin-btn.delete-btn { color: #fca5a5; border-color: rgba(239,68,68,0.3); }
+    body.theme-japanese .card-admin-btn.delete-btn { color: #fca5a5; border-color: rgba(254,202,202,0.4); }
+
+    .card-admin-btn.delete-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+
+    .card-admin-btn svg { width: 11px; height: 11px; }
 
     /* Modals */
     .drop-zone {
@@ -1031,9 +1054,17 @@
       .links-grid { gap: 4px; }
       .link-btn { padding: 6px 2px; font-size: 0.62rem; }
       .link-btn svg { width: 11px; height: 11px; margin-bottom: 1px; }
-      .card-admin-actions { opacity: 1; top: 6px; right: 6px; }
-      .admin-icon-btn { width: 22px; height: 22px; }
-      .admin-icon-btn svg { width: 10px; height: 10px; }
+
+      .card-admin-bar {
+        margin-top: 6px;
+        padding-top: 6px;
+        gap: 6px;
+      }
+      .card-admin-btn {
+        padding: 2px 6px;
+        font-size: 0.62rem;
+      }
+      .card-admin-btn svg { width: 10px; height: 10px; }
     }
 
     @media (max-width: 360px) {
@@ -1043,7 +1074,7 @@
 </head>
 <body class="theme-wanted">
 
-  <!-- 画面右上固定 (position: fixed) のUI切り替えボックス -->
+  <!-- 画面右上固定のUI切り替えボックス -->
   <div class="theme-select-box">
     <span>🎨</span>
     <select id="themeSelectDropdown" class="theme-select-dropdown" onchange="selectTheme(this.value)" aria-label="UIテーマ選択">
@@ -1499,10 +1530,6 @@
 
         card.innerHTML = `
           <div class="poster-pin"></div>
-          <div class="card-admin-actions">
-            <button class="admin-icon-btn" onclick="openEditModal('${key}')" title="編集">${ICON_EDIT}</button>
-            <button class="admin-icon-btn delete" onclick="openDeleteModal('${key}', '${escapeHtml(m.name)}')" title="削除">${ICON_DELETE}</button>
-          </div>
           <div class="poster-header-text">${headerText}</div>
           <div class="poster-sub-header">${subHeaderText}</div>
           
@@ -1525,6 +1552,12 @@
             ${xBtnHtml}
             <a class="link-btn ewgf-btn" href="${escapeHtml(ewgfUrl)}" target="_blank" rel="noopener">${ICON_LIGHTNING} ewgf</a>
             <a class="link-btn wavu-btn" href="${escapeHtml(wavuUrl)}" target="_blank" rel="noopener">${ICON_WAVU} wavu</a>
+          </div>
+
+          <!-- ★カードのデザインに1ミリも被らないスマートな最下部管理バー★ -->
+          <div class="card-admin-bar">
+            <button class="card-admin-btn" onclick="openEditModal('${key}')" title="編集">${ICON_EDIT} 編集</button>
+            <button class="card-admin-btn delete-btn" onclick="openDeleteModal('${key}', '${escapeHtml(m.name)}')" title="削除">${ICON_DELETE} 削除</button>
           </div>
         `;
 
