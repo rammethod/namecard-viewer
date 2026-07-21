@@ -1128,69 +1128,125 @@
 
     /* Mobile Optimization */
     @media (max-width: 640px) {
-      body { padding: 12px 8px 48px; }
+      body { padding: 12px 6px 48px; }
       body.theme-wanted .board-container, body.theme-modern .board-container, body.theme-japanese .board-container {
-        padding: 16px 10px;
+        padding: 16px 8px;
         border-width: 6px;
       }
       
-      .top-controls { margin-bottom: 16px; }
+      .top-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .top-controls > div {
+        justify-content: space-between;
+        width: 100%;
+      }
 
       .status-badge {
         padding: 4px 10px;
         font-size: 0.7rem;
         letter-spacing: 1px;
+        align-self: flex-start;
       }
 
       .theme-select-box {
-        top: 12px;
-        right: 12px;
-        width: 145px;
-        padding: 4px 8px;
-        font-size: 0.72rem;
+        position: relative;
+        top: auto;
+        right: auto;
+        width: 100%;
+        max-width: none;
+        margin-bottom: 10px;
+        justify-content: center;
       }
 
-      .saloon-title { font-size: 1.6rem; }
-      .saloon-subtitle { font-size: 0.85rem; }
-      .btn-add-bounty { padding: 10px 20px; font-size: 0.9rem; }
+      .saloon-title { font-size: 1.5rem; letter-spacing: 1px; }
+      .saloon-subtitle { font-size: 0.8rem; }
+      .btn-add-bounty { padding: 10px 16px; font-size: 0.85rem; width: 100%; justify-content: center; }
 
       .poster-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        padding: 4px 0;
+        gap: 8px;
+        padding: 2px 0;
       }
 
-      body.theme-wanted .poster-card, body.theme-japanese .poster-card { padding: 14px 10px 12px; }
-      body.theme-modern .poster-card { padding: 12px 10px; border-radius: 12px; }
+      body.theme-wanted .poster-card, body.theme-japanese .poster-card { padding: 12px 8px 10px; }
+      body.theme-modern .poster-card { padding: 10px 8px; border-radius: 12px; }
 
       .poster-pin { width: 10px; height: 10px; top: 4px; }
-      .poster-header-text { font-size: 1.3rem; letter-spacing: 2px; }
-      .poster-sub-header { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 8px; }
-      .avatar-frame { height: 105px; margin-bottom: 8px; }
-      .avatar-initials { font-size: 2.2rem; }
-      .poster-name { font-size: 1rem; margin-bottom: 2px; }
-      .poster-nickname { font-size: 0.72rem; margin-bottom: 8px; }
-      .id-box { padding: 6px 8px; margin-bottom: 8px; }
-      .id-label { font-size: 0.55rem; }
-      .id-value { font-size: 0.72rem; letter-spacing: 0; }
-      .copy-badge { font-size: 0.65rem; }
-      .links-grid { gap: 4px; }
-      .link-btn { padding: 6px 2px; font-size: 0.62rem; }
-      .link-btn svg { width: 11px; height: 11px; margin-bottom: 1px; }
+      .poster-header-text { font-size: 1.2rem; letter-spacing: 1px; }
+      .poster-sub-header { font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 6px; }
+      .avatar-frame { height: 95px; margin-bottom: 6px; }
+      .avatar-initials { font-size: 2rem; }
+      .poster-name { font-size: 0.95rem; margin-bottom: 2px; }
+      .poster-nickname { font-size: 0.68rem; margin-bottom: 6px; }
 
-      .card-admin-bar {
-        margin-top: 6px;
-        padding-top: 6px;
-        gap: 6px;
+      /* モバイルでのカード内ステータスボックス最適化 */
+      .card-stats-container {
+        padding: 6px 4px;
+        margin: 4px 0 8px;
       }
-      .card-admin-btn {
+
+      .last-seen-badge {
+        font-size: 0.62rem;
+        padding: 2px 6px;
+        margin-bottom: 4px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 100%;
+      }
+
+      .last-seen-badge span {
+        display: none !important; /* モバイルでは詳細日時(YYYY/MM/DD)を非表示にしてスッキリ納める */
+      }
+
+      .stats-info-grid {
+        grid-template-columns: 1fr;
+        gap: 2px;
+        font-size: 0.64rem;
+        padding-top: 2px;
+      }
+
+      .stats-info-item {
+        padding: 0 2px;
+      }
+
+      .card-refresh-btn {
         padding: 2px 6px;
         font-size: 0.62rem;
+        margin-top: 4px;
+        width: 100%;
+        justify-content: center;
       }
-      .card-admin-btn svg { width: 10px; height: 10px; }
+
+      .id-box { padding: 5px 6px; margin-bottom: 6px; }
+      .id-label { font-size: 0.5rem; }
+      .id-value { font-size: 0.68rem; letter-spacing: 0; }
+      .copy-badge { font-size: 0.6rem; }
+      .links-grid { gap: 3px; }
+      .link-btn { padding: 5px 2px; font-size: 0.6rem; }
+      .link-btn svg { width: 10px; height: 10px; margin-bottom: 1px; }
+
+      .card-admin-bar {
+        margin-top: 4px;
+        padding-top: 4px;
+        gap: 4px;
+        justify-content: space-between;
+      }
+      .card-admin-btn {
+        padding: 2px 4px;
+        font-size: 0.6rem;
+        flex: 1;
+        justify-content: center;
+      }
+      .card-admin-btn svg { width: 9px; height: 9px; }
     }
 
-    @media (max-width: 360px) {
+    @media (max-width: 380px) {
       .poster-grid { grid-template-columns: 1fr; }
     }
   </style>
@@ -1694,8 +1750,10 @@
       }
     }
 
+    const DEFAULT_WORKER_URL = 'https://cold-cherry-2333.uracil123.workers.dev';
+
     function getCustomWorkerUrl() {
-      return localStorage.getItem('t8_custom_worker_url') || '';
+      return localStorage.getItem('t8_custom_worker_url') || DEFAULT_WORKER_URL;
     }
 
     function setCustomWorkerUrl(url) {
