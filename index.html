@@ -349,9 +349,10 @@
       font-weight: 600;
     }
 
+    /* Dynamic Buttons Grid (全ボタン数に合わせて均等配置) */
     .links-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
       gap: 6px;
       margin-top: auto;
     }
@@ -744,8 +745,8 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="inputXUrl">X (Twitter) URL または ユーザー名</label>
-          <input class="form-input" type="text" id="inputXUrl" placeholder="例: https://x.com/username または @username" maxlength="200">
+          <label class="form-label" for="inputXUrl">X (Twitter) URL または ユーザー名（任意 / 空欄でボタン非表示）</label>
+          <input class="form-input" type="text" id="inputXUrl" placeholder="例: https://x.com/username または @username (無ければ空欄)" maxlength="200">
         </div>
 
         <!-- Photo Upload & Drag/Drop Area -->
@@ -892,7 +893,6 @@
       }
     }
 
-    /* Setup Drag and Drop for Photo Upload */
     function setupDragAndDrop() {
       const dropZone = document.getElementById('dropZone');
       ['dragenter', 'dragover'].forEach(eventName => {
@@ -931,7 +931,6 @@
       }
     }
 
-    /* Open Cropper Modal for cropping vertical/horizontal images */
     function processImageFile(file) {
       if (!file.type.startsWith('image/')) {
         showToast('⚠️ 画像ファイルを選択してください');
@@ -949,7 +948,7 @@
         }
 
         cropper = new Cropper(cropImage, {
-          aspectRatio: 4 / 3, // 手配書のアバター枠に最適化
+          aspectRatio: 4 / 3,
           viewMode: 1,
           autoCropArea: 0.9,
           background: false,
@@ -958,7 +957,6 @@
       reader.readAsDataURL(file);
     }
 
-    /* Apply Crop result to DataURL */
     function applyCrop() {
       if (!cropper) return;
 
@@ -1044,6 +1042,7 @@
 
         const gameId = m.gameId || '';
 
+        // Generate Links
         let xUrl = m.xUrl || m.profileUrl || '';
         if (xUrl && !xUrl.startsWith('http')) {
           if (xUrl.startsWith('@')) xUrl = xUrl.substring(1);
@@ -1061,6 +1060,11 @@
         } else {
           photoHtml = `<div class="avatar-initials">${escapeHtml(getInitials(m.name))}</div>`;
         }
+
+        // X(Twitter)リンクがある場合のみボタン要素を生成、無ければ完全にスキップ（空欄時は非表示）
+        const xBtnHtml = (xUrl && xUrl.trim())
+          ? `<a class="link-btn x-btn" href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">${ICON_X} SNS (X)</a>`
+          : '';
 
         card.innerHTML = `
           <div class="poster-pin"></div>
@@ -1087,7 +1091,7 @@
           </div>
 
           <div class="links-grid">
-            ${xUrl ? `<a class="link-btn x-btn" href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">${ICON_X} SNS (X)</a>` : `<span class="link-btn x-btn" style="opacity:0.4; cursor:not-allowed;">${ICON_X} SNS</span>`}
+            ${xBtnHtml}
             <a class="link-btn ewgf-btn" href="${escapeHtml(ewgfUrl)}" target="_blank" rel="noopener">${ICON_LIGHTNING} ewgf</a>
             <a class="link-btn wavu-btn" href="${escapeHtml(wavuUrl)}" target="_blank" rel="noopener">${ICON_WAVU} wavu</a>
           </div>
