@@ -1660,7 +1660,7 @@
 
     /* ===== Prototype Stats & Radar Chart Logic (ewgf.gg Official API) ===== */
     const DEFAULT_EWGF_API_KEY = 'ewgf_48599735d7a64a109401945131210139';
-    const LOCAL_STATS_CACHE_KEY = 't8_wanted_ewgf_stats_v1';
+    const LOCAL_STATS_CACHE_KEY = 't8_wanted_ewgf_stats_v3';
     const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 1日100回制限対策: 12時間キャッシュ
 
     function getEwgfApiKey() {
@@ -1776,8 +1776,11 @@
       }
     }
 
-    // wank.wavu.wiki から正真正銘の本物 μ レート (Glicko-2 Elo) を100%抽出
-    async function fetchRealWavuRating(cleanId) {
+    // wank.wavu.wiki から正真正銘の本物 μ レート & メインキャラ試合数を100%抽出
+    async function fetchRealWavuData(cleanId) {
+      let ratingMu = null;
+      let charGamesMap = {};
+
       // 自前 Worker URL が設定されている場合は優先使用 (Cloudflare ブロック完全回避)
       const customWorker = getCustomWorkerUrl();
       if (customWorker) {
@@ -1786,8 +1789,12 @@
           const res = await fetch(workerEndpoint);
           if (res.ok) {
             const data = await res.json();
-            if (data && data.ratingMu !== undefined && data.ratingMu !== null) {
-              return data.ratingMu;
+            if (data) {
+              if (data.ratingMu !== undefined && data.ratingMu !== null) ratingMu = data.ratingMu;
+              if (data.charGamesMap && Object.keys(data.charGamesMap).length > 0) {
+                charGamesMap = data.charGamesMap;
+                return { ratingMu, charGamesMap };
+              }
             }
           }
         } catch (e) {
@@ -1819,10 +1826,7 @@
                 const battleData = JSON.parse(jsonMatch[1]);
                 if (battleData && battleData.length > 0) {
                   const latest = battleData[0];
-                  const exactMu = latest.rating_after !== undefined ? latest.rating_after : latest.rating_before;
-                  if (exactMu !== undefined && exactMu !== null) {
-                    return exactMu;
-                  }
+                  ratingMu = latest.rating_after !== undefined ? latest.rating_after : latest.rating_before;
                 }
               } catch (e) {
                 console.warn('Wavu JSON parse error:', e);
@@ -1830,16 +1834,32 @@
             }
 
             // フォールバック: HTML内の game-list から抽出
-            const gameListMatch = html.match(/class="game-list"[\s\S]*?class="rating"[\s\S]*?\b(\d{3,4})\b/);
-            if (gameListMatch) {
-              return parseInt(gameListMatch[1], 10);
+            if (ratingMu === null) {
+              const gameListMatch = html.match(/class="game-list"[\s\S]*?class="rating"[\s\S]*?\b(\d{3,4})\b/);
+              if (gameListMatch) {
+                ratingMu = parseInt(gameListMatch[1], 10);
+              }
             }
+
+            // キャラごとの総対戦数抽出 (<div class="rating"> ... <div class="char">Bryan</div> ... <div class="games">1153 games</div>)
+            const ratingBlocks = html.match(/<div class="rating">[\s\S]*?<\/div>\s*<\/div>/g) || html.match(/class="rating"[\s\S]*?class="games"[\s\S]*?<\/div>/g) || [];
+            for (const block of ratingBlocks) {
+              const charMatch = block.match(/class="char">\s*([^<]+)\s*</i);
+              const gamesMatch = block.match(/class="games">\s*([\d,]+)\s*games?/i);
+              if (charMatch && gamesMatch) {
+                const cName = charMatch[1].trim();
+                const gCount = parseInt(gamesMatch[1].replace(/,/g, ''), 10);
+                charGamesMap[cName] = gCount;
+              }
+            }
+
+            return { ratingMu, charGamesMap };
           }
         } catch (e) {
           console.warn(`Wavu proxy fetch failed for ${url}:`, e);
         }
       }
-      return null;
+      return { ratingMu: null, charGamesMap: {} };
     }
 
     async function fetchEwgfStats(gameId, forceRefresh = false) {
@@ -1885,15 +1905,25 @@
             battleTs = new Date(latestBattle.battle_at).getTime();
           }
 
-          // wank.wavu.wiki から正真正銘の最新本物 μ レートを取得
-          const realMu = await fetchRealWavuRating(cleanId);
+          // wank.wavu.wiki から正真正銘の最新本物 μ レート & メインキャラ試合数を取得
+          const wavuData = await fetchRealWavuData(cleanId);
+          let mainCharGames = null;
+          if (wavuData && wavuData.charGamesMap) {
+            if (playerChar && wavuData.charGamesMap[playerChar] !== undefined) {
+              mainCharGames = wavuData.charGamesMap[playerChar];
+            } else {
+              const firstCharKey = Object.keys(wavuData.charGamesMap)[0];
+              if (firstCharKey) mainCharGames = wavuData.charGamesMap[firstCharKey];
+            }
+          }
 
           const statsData = {
             gameId: cleanId,
             mainChar: playerChar || 'Unknown',
+            mainCharGames: mainCharGames !== null ? mainCharGames : (cached ? cached.mainCharGames : null),
             danRank: playerRank || 'Unranked',
             tekkenPower: playerPower || 0,
-            ratingMu: realMu !== null ? realMu : (cached ? cached.ratingMu : null),
+            ratingMu: wavuData.ratingMu !== null ? wavuData.ratingMu : (cached ? cached.ratingMu : null),
             lastSeenTimestamp: battleTs || Date.now(),
             totalBattlesFetched: battles.length,
             updatedAt: Date.now()
@@ -2050,7 +2080,10 @@
       if (container) {
         container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
         const mainCharEl = container.querySelector('.val-main-char');
-        if (mainCharEl) mainCharEl.textContent = stats.mainChar || 'Unknown';
+        if (mainCharEl) {
+          const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
+          mainCharEl.innerHTML = `${escapeHtml(stats.mainChar || 'Unknown')}${gamesText}`;
+        }
         const rankEl = container.querySelector('.val-rank');
         if (rankEl) rankEl.textContent = stats.danRank || '-';
         const ratingEl = container.querySelector('.val-rating');
@@ -2149,7 +2182,7 @@
             <div class="stats-info-grid">
               <div class="stats-info-item">
                 <span class="stats-info-label">Main:</span>
-                <span class="stats-info-val val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}</span>
+                <span class="stats-info-val val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}${cachedStats && cachedStats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${cachedStats.mainCharGames.toLocaleString()} games)</span>` : ''}</span>
               </div>
               <div class="stats-info-item">
                 <span class="stats-info-label">Rank:</span>
@@ -2202,7 +2235,10 @@
             if (container) {
               container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
               const mainCharEl = container.querySelector('.val-main-char');
-              if (mainCharEl) mainCharEl.textContent = stats.mainChar || 'Unknown';
+              if (mainCharEl) {
+                const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
+                mainCharEl.innerHTML = `${escapeHtml(stats.mainChar || 'Unknown')}${gamesText}`;
+              }
               const rankEl = container.querySelector('.val-rank');
               if (rankEl) rankEl.textContent = stats.danRank || '-';
               const ratingEl = container.querySelector('.val-rating');
