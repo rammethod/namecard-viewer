@@ -68,7 +68,6 @@
       position: relative;
     }
 
-    /* Board Frame Metal Bolts */
     .board-container::before, .board-container::after {
       content: '';
       position: absolute;
@@ -81,7 +80,6 @@
     .board-container::before { top: 10px; left: 10px; }
     .board-container::after { top: 10px; right: 10px; }
 
-    /* Header Saloon Banner */
     .saloon-header {
       text-align: center;
       margin-bottom: 40px;
@@ -166,7 +164,6 @@
       letter-spacing: 1px;
     }
 
-    /* Add Bounty Button */
     .btn-add-bounty {
       margin-top: 24px;
       display: inline-flex;
@@ -195,8 +192,8 @@
     /* Grid */
     .poster-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 32px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 28px;
       padding: 10px;
     }
 
@@ -223,7 +220,6 @@
       z-index: 10;
     }
 
-    /* Pin / Thumbtack on Poster */
     .poster-pin {
       position: absolute;
       top: 8px;
@@ -261,7 +257,6 @@
       margin-bottom: 14px;
     }
 
-    /* Photo Frame */
     .avatar-frame {
       width: 100%;
       height: 160px;
@@ -311,7 +306,6 @@
       font-style: italic;
     }
 
-    /* ID Row & Copy */
     .id-box {
       background: rgba(0,0,0,0.06);
       border: 1px dashed var(--parchment-border);
@@ -351,7 +345,6 @@
       font-weight: 600;
     }
 
-    /* External Links Buttons Grid */
     .links-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -380,15 +373,9 @@
       transform: translateY(-1px);
     }
 
-    .link-btn.x-btn {
-      background: var(--x-color);
-    }
-    .link-btn.ewgf-btn {
-      background: var(--ewgf-color);
-    }
-    .link-btn.wavu-btn {
-      background: var(--wavu-color);
-    }
+    .link-btn.x-btn { background: var(--x-color); }
+    .link-btn.ewgf-btn { background: var(--ewgf-color); }
+    .link-btn.wavu-btn { background: var(--wavu-color); }
 
     .link-btn svg {
       width: 14px;
@@ -397,7 +384,6 @@
       fill: currentColor;
     }
 
-    /* Action Buttons (Edit / Delete) */
     .card-admin-actions {
       position: absolute;
       top: 10px;
@@ -441,7 +427,7 @@
       height: 12px;
     }
 
-    /* Photo Upload Area in Modal */
+    /* Modal Styling */
     .photo-upload-area {
       display: flex;
       align-items: center;
@@ -470,9 +456,7 @@
       object-fit: cover;
     }
 
-    .photo-controls {
-      flex: 1;
-    }
+    .photo-controls { flex: 1; }
 
     .file-input-btn {
       display: inline-block;
@@ -497,7 +481,6 @@
       cursor: pointer;
     }
 
-    /* Color Picker Presets */
     .color-presets {
       display: flex;
       flex-wrap: wrap;
@@ -514,16 +497,12 @@
       transition: transform 0.15s, border-color 0.15s;
     }
 
-    .color-swatch:hover {
-      transform: scale(1.15);
-    }
-
+    .color-swatch:hover { transform: scale(1.15); }
     .color-swatch.selected {
       border-color: var(--gold-accent);
       box-shadow: 0 0 0 2px #fff;
     }
 
-    /* Modals */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -566,9 +545,7 @@
       letter-spacing: 2px;
     }
 
-    .form-group {
-      margin-bottom: 16px;
-    }
+    .form-group { margin-bottom: 16px; }
 
     .form-label {
       display: block;
@@ -591,9 +568,7 @@
       outline: none;
     }
 
-    .form-input:focus {
-      border-color: var(--gold-accent);
-    }
+    .form-input:focus { border-color: var(--gold-accent); }
 
     .modal-actions {
       display: flex;
@@ -611,23 +586,10 @@
       cursor: pointer;
     }
 
-    .btn-cancel {
-      background: transparent;
-      color: #edd9b4;
-    }
+    .btn-cancel { background: transparent; color: #edd9b4; }
+    .btn-save { background: var(--gold-accent); color: #2b1a0e; }
+    .btn-danger { background: var(--text-red); color: #fff; border-color: var(--text-red); }
 
-    .btn-save {
-      background: var(--gold-accent);
-      color: #2b1a0e;
-    }
-
-    .btn-danger {
-      background: var(--text-red);
-      color: #fff;
-      border-color: var(--text-red);
-    }
-
-    /* Toast */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -651,17 +613,60 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* Loading & Empty */
     .loading-state, .empty-state {
       text-align: center;
       padding: 60px 20px;
       color: var(--gold-accent);
     }
 
-    /* Responsive */
+    /* ========== Mobile Optimization (スマホ表示調整) ========== */
     @media (max-width: 640px) {
-      .saloon-title { font-size: 1.8rem; }
-      .poster-grid { grid-template-columns: 1fr; }
+      body { padding: 16px 8px 48px; }
+      .board-container { padding: 20px 12px; border-width: 6px; }
+      .saloon-title { font-size: 1.6rem; }
+      .saloon-subtitle { font-size: 0.85rem; }
+      .btn-add-bounty { padding: 10px 20px; font-size: 0.9rem; }
+
+      /* スマホでは2列配置で手配書をコンパクト・見やすく配置 */
+      .poster-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 4px 0;
+      }
+
+      .poster-card {
+        padding: 14px 10px 12px;
+      }
+
+      .poster-pin { width: 10px; height: 10px; top: 4px; }
+      .poster-header-text { font-size: 1.3rem; letter-spacing: 2px; }
+      .poster-sub-header { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 8px; }
+
+      .avatar-frame { height: 105px; margin-bottom: 8px; }
+      .avatar-initials { font-size: 2.2rem; }
+
+      .poster-name { font-size: 1rem; margin-bottom: 2px; }
+      .poster-nickname { font-size: 0.72rem; margin-bottom: 8px; }
+
+      .id-box { padding: 6px 8px; margin-bottom: 8px; }
+      .id-label { font-size: 0.55rem; }
+      .id-value { font-size: 0.72rem; letter-spacing: 0; }
+      .copy-badge { font-size: 0.65rem; }
+
+      .links-grid { gap: 4px; }
+      .link-btn { padding: 6px 2px; font-size: 0.62rem; }
+      .link-btn svg { width: 11px; height: 11px; margin-bottom: 1px; }
+
+      .card-admin-actions { opacity: 1; top: 6px; right: 6px; }
+      .admin-icon-btn { width: 22px; height: 22px; }
+      .admin-icon-btn svg { width: 10px; height: 10px; }
+    }
+
+    /* 極小画面（幅360px以下）の場合の1列フォールバック */
+    @media (max-width: 360px) {
+      .poster-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
@@ -875,7 +880,6 @@
       });
     }
 
-    /* Photo Client-Side Resize & Base64 Converter */
     function handlePhotoSelect(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -900,7 +904,6 @@
           canvas.height = height;
           ctx.drawImage(img, 0, 0, width, height);
 
-          // Compress to lightweight JPEG Base64 (~20-30KB)
           const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
           setPhotoPreview(dataUrl);
         };
@@ -948,7 +951,6 @@
 
         const gameId = m.gameId || '';
 
-        // Generate Links
         let xUrl = m.xUrl || m.profileUrl || '';
         if (xUrl && !xUrl.startsWith('http')) {
           if (xUrl.startsWith('@')) xUrl = xUrl.substring(1);
@@ -1115,7 +1117,6 @@
       toastTimer = setTimeout(() => toast.classList.remove('show'), 2200);
     }
 
-    /* Page Title Edit & Sync with Firebase */
     function startEditTitle() {
       const titleEl = document.getElementById('pageTitle');
       const input = document.getElementById('titleInput');
