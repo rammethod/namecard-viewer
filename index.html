@@ -109,7 +109,7 @@
       box-shadow: 0 6px 20px rgba(244, 63, 94, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4);
     }
 
-    /* ========== Common Layout ========== */
+    /* Common Layout */
     .app-container {
       max-width: 1080px;
       margin: 0 auto;
@@ -130,7 +130,6 @@
       padding: 0;
     }
 
-    /* Metal Bolts for Wanted Theme */
     body.theme-wanted .board-container::before, body.theme-wanted .board-container::after {
       content: '';
       position: absolute;
@@ -143,7 +142,6 @@
     body.theme-wanted .board-container::before { top: 10px; left: 10px; }
     body.theme-wanted .board-container::after { top: 10px; right: 10px; }
 
-    /* Header Bar & Theme Switcher */
     .saloon-header {
       text-align: center;
       margin-bottom: 40px;
@@ -182,7 +180,6 @@
       box-shadow: 0 0 8px #ef4444;
     }
 
-    /* UI Theme Selector Switch Button */
     .theme-switch-btn {
       display: inline-flex;
       align-items: center;
@@ -204,11 +201,8 @@
       background: rgba(0,0,0,0.6);
     }
 
-    .theme-switch-btn:hover {
-      transform: scale(1.05);
-    }
+    .theme-switch-btn:hover { transform: scale(1.05); }
 
-    /* Saloon / Modern Title Wrap */
     .saloon-title-wrap {
       border-radius: 6px;
       padding: 16px 24px;
@@ -312,7 +306,6 @@
       padding: 10px;
     }
 
-    /* Poster Card (Wanted Sheet & Modern Card) */
     .poster-card {
       position: relative;
       transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -320,7 +313,6 @@
       flex-direction: column;
     }
 
-    /* Wanted Card Design */
     body.theme-wanted .poster-card {
       background: var(--parchment-bg);
       background-image: 
@@ -338,7 +330,6 @@
       z-index: 10;
     }
 
-    /* Modern Card Design */
     body.theme-modern .poster-card {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -653,6 +644,13 @@
       margin-top: 6px;
     }
 
+    .form-note {
+      font-size: 0.75rem;
+      color: #d1b894;
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
     /* Cropper Modal */
     .crop-container {
       width: 100%;
@@ -900,8 +898,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="inputId">鉄拳8 ID (Tekken 8 ID)</label>
-          <input class="form-input" type="text" id="inputId" placeholder="例: 3A4B-5C6D-7E8F" required maxlength="60">
+          <label class="form-label" for="inputId">鉄拳8 ID (12桁ハイフン不要)</label>
+          <input class="form-input" type="text" id="inputId" placeholder="例: 3A4B5C6D7E8F (ハイフン不要)" required maxlength="60">
+          <div class="form-note">※ハイフン無しの12桁IDを入力してください。ハイフンを含めて入力しても自動で除去・整形されます。</div>
         </div>
 
         <div class="form-group">
@@ -910,8 +909,9 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="inputXUrl">X (Twitter) URL または ユーザー名（任意 / 空欄でボタン非表示）</label>
-          <input class="form-input" type="text" id="inputXUrl" placeholder="例: https://x.com/username または @username (無ければ空欄)" maxlength="200">
+          <label class="form-label" for="inputXUrl">X (Twitter) URL または ユーザー名</label>
+          <input class="form-input" type="text" id="inputXUrl" placeholder="例: @username または URL" maxlength="200">
+          <div class="form-note">※アカウントをお持ちでない場合は空欄のまま保存してください。（カード上のXボタンが非表示になります）</div>
         </div>
 
         <!-- Photo Upload & Drag/Drop Area -->
@@ -1012,6 +1012,11 @@
     let toastTimer = null;
     let cropper = null;
     let currentTheme = 'wanted'; // 'wanted' or 'modern'
+
+    function cleanTekkenId(rawId) {
+      if (!rawId) return '';
+      return rawId.replace(/[-ー−\s]/g, '').trim();
+    }
 
     // SVG Icons
     const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -1240,7 +1245,7 @@
         const randTilt = ((idx % 5) - 2) * 1.2;
         card.style.setProperty('--rand-deg', randTilt);
 
-        const gameId = m.gameId || '';
+        const cleanGameId = cleanTekkenId(m.gameId);
 
         let xUrl = (m.xUrl && typeof m.xUrl === 'string') ? m.xUrl.trim() : '';
         if (xUrl && !xUrl.startsWith('http')) {
@@ -1248,8 +1253,8 @@
           xUrl = `https://x.com/${xUrl}`;
         }
 
-        const ewgfUrl = `https://ewgf.gg/player/${encodeURIComponent(gameId)}`;
-        const wavuUrl = `https://wank.wavu.wiki/player/${encodeURIComponent(gameId)}`;
+        const ewgfUrl = `https://ewgf.gg/player/${encodeURIComponent(cleanGameId)}`;
+        const wavuUrl = `https://wank.wavu.wiki/player/${encodeURIComponent(cleanGameId)}`;
         const avatarBg = m.color || PRESET_COLORS[0];
         const photoData = m.photoData || '';
 
@@ -1280,10 +1285,10 @@
           <div class="poster-name">${escapeHtml(m.name)}</div>
           <div class="poster-nickname">${escapeHtml(m.subtitle || (currentTheme === 'wanted' ? '手配中' : 'Member'))}</div>
 
-          <div class="id-box" onclick="copyId('${escapeHtml(gameId)}', '${escapeHtml(m.name)}')">
+          <div class="id-box" onclick="copyId('${escapeHtml(cleanGameId)}', '${escapeHtml(m.name)}')">
             <div>
               <span class="id-label">TEKKEN 8 ID</span>
-              <span class="id-value">${escapeHtml(gameId)}</span>
+              <span class="id-value">${escapeHtml(cleanGameId)}</span>
             </div>
             <span class="copy-badge">📋 Copy</span>
           </div>
@@ -1343,7 +1348,7 @@
         document.getElementById('btnSaveSubmit').textContent = currentTheme === 'wanted' ? '手配書を更新する' : '保存する';
         document.getElementById('editKey').value = key;
         document.getElementById('inputName').value = m.name || '';
-        document.getElementById('inputId').value = m.gameId || '';
+        document.getElementById('inputId').value = cleanTekkenId(m.gameId);
         document.getElementById('inputSubtitle').value = m.subtitle || '';
         document.getElementById('inputXUrl').value = m.xUrl !== undefined ? m.xUrl : '';
         document.getElementById('inputPhotoFile').value = '';
@@ -1375,10 +1380,12 @@
       e.preventDefault();
       const key = document.getElementById('editKey').value;
       const name = document.getElementById('inputName').value.trim();
-      const gameId = document.getElementById('inputId').value.trim();
+      const rawGameId = document.getElementById('inputId').value.trim();
       const subtitle = document.getElementById('inputSubtitle').value.trim();
       const xUrl = document.getElementById('inputXUrl').value.trim();
       const photoData = document.getElementById('photoData').value;
+
+      const gameId = cleanTekkenId(rawGameId);
 
       if (!name || !gameId) return;
 
