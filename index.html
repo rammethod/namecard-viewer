@@ -1844,6 +1844,17 @@
           }
         });
 
+        // Firebase リアルタイム全デバイス同期 API カウンターリスナー
+        db.ref('api_quota').on('value', (snap) => {
+          const val = snap.val();
+          const today = getTodayString();
+          if (val && val.lastDate === today) {
+            updateApiCallBadge(val.callCount || 0);
+          } else {
+            updateApiCallBadge(0);
+          }
+        });
+
         membersRef.on('value', (snapshot) => {
           document.getElementById('loadingState').style.display = 'none';
           renderPosters(snapshot.val());
@@ -2054,23 +2065,31 @@
       }
     }
 
-    let globalApiCallCount = 0;
+    function getTodayString() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
 
     function incrementApiCallCounter() {
-      globalApiCallCount++;
-      try {
-        const currentCount = parseInt(localStorage.getItem('t8_ewgf_api_call_count') || '0', 10) + 1;
-        localStorage.setItem('t8_ewgf_api_call_count', currentCount.toString());
-        updateApiCallBadge(currentCount);
-      } catch (e) { }
+      if (!db) return;
+      const quotaRef = db.ref('api_quota');
+      const today = getTodayString();
+
+      quotaRef.transaction((currentData) => {
+        if (!currentData || currentData.lastDate !== today) {
+          return { callCount: 1, lastDate: today };
+        } else {
+          return { callCount: (currentData.callCount || 0) + 1, lastDate: today };
+        }
+      });
     }
 
     function updateApiCallBadge(count) {
       const badge = document.getElementById('apiQuotaText');
       if (badge) {
-        const savedCount = count || parseInt(localStorage.getItem('t8_ewgf_api_call_count') || '0', 10);
-        const remaining = Math.max(0, 100 - (savedCount % 100));
-        badge.textContent = `🔑 ewgf API 本日使用: 約${savedCount}回 (残り ${remaining}/100回目安・12hキャッシュ)`;
+        const savedCount = count !== undefined ? count : 0;
+        const remaining = Math.max(0, 100 - savedCount);
+        badge.textContent = `🔑 ewgf API 本日全体使用: 約${savedCount}回 (残り ${remaining}/100回目安・12hキャッシュ)`;
       }
     }
 
