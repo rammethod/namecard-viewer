@@ -778,7 +778,7 @@
 
         <div class="modal-actions">
           <button class="btn-wood btn-cancel" type="button" onclick="closeModal('editModal')">キャンセル</button>
-          <button class="btn-wood btn-save" type="submit">手配書を貼り付ける</button>
+          <button class="btn-wood btn-save" type="submit" id="btnSaveSubmit">手配書を貼り付ける</button>
         </div>
       </form>
     </div>
@@ -1042,8 +1042,8 @@
 
         const gameId = m.gameId || '';
 
-        // Generate Links
-        let xUrl = m.xUrl || m.profileUrl || '';
+        // ★原因究明ポイント★: 旧 `profileUrl` への自動フォールバックを排除し、`m.xUrl` のみを厳密判定！
+        let xUrl = (m.xUrl && typeof m.xUrl === 'string') ? m.xUrl.trim() : '';
         if (xUrl && !xUrl.startsWith('http')) {
           if (xUrl.startsWith('@')) xUrl = xUrl.substring(1);
           xUrl = `https://x.com/${xUrl}`;
@@ -1061,8 +1061,8 @@
           photoHtml = `<div class="avatar-initials">${escapeHtml(getInitials(m.name))}</div>`;
         }
 
-        // X(Twitter)リンクがある場合のみボタン要素を生成、無ければ完全にスキップ（空欄時は非表示）
-        const xBtnHtml = (xUrl && xUrl.trim())
+        // Xアカウントが設定されている場合のみボタンを表示、空欄時は完全に非表示
+        const xBtnHtml = xUrl
           ? `<a class="link-btn x-btn" href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">${ICON_X} SNS (X)</a>`
           : '';
 
@@ -1124,6 +1124,7 @@
 
     function openAddModal() {
       document.getElementById('modalTitle').textContent = '手配書を作成';
+      document.getElementById('btnSaveSubmit').textContent = '手配書を貼り付ける';
       document.getElementById('editKey').value = '';
       document.getElementById('inputName').value = '';
       document.getElementById('inputId').value = '';
@@ -1141,11 +1142,13 @@
         const m = snap.val();
         if (!m) return;
         document.getElementById('modalTitle').textContent = '手配書を編集';
+        document.getElementById('btnSaveSubmit').textContent = '手配書を更新する';
         document.getElementById('editKey').value = key;
         document.getElementById('inputName').value = m.name || '';
         document.getElementById('inputId').value = m.gameId || '';
         document.getElementById('inputSubtitle').value = m.subtitle || '';
-        document.getElementById('inputXUrl').value = m.xUrl || m.profileUrl || '';
+        // 編集時に旧 profileUrl が残っていても xUrl の値を正しく読み込み
+        document.getElementById('inputXUrl').value = m.xUrl !== undefined ? m.xUrl : '';
         document.getElementById('inputPhotoFile').value = '';
         setPhotoPreview(m.photoData || '');
         selectedColor = m.color || PRESET_COLORS[0];
@@ -1182,11 +1185,13 @@
 
       if (!name || !gameId) return;
 
+      // ★原因究明ポイント★: 旧 `profileUrl` を明示的に消去して旧データの干渉を防止
       const data = {
         name,
         gameId,
         subtitle,
         xUrl,
+        profileUrl: null,
         photoData,
         color: selectedColor,
         updatedAt: Date.now()
