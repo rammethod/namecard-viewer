@@ -78,7 +78,26 @@
       padding: 40px 20px 80px;
     }
 
-    /* Modern Theme Rich Neon Link Buttons Override */
+    /* ========== THEME 3: JAPANESE (爽やか涼感和風・藤紫雲海) ========== */
+    body.theme-japanese {
+      --wafu-sky: #dbeafe;
+      --wafu-purple: #4338ca;
+      --wafu-purple-dark: #312e81;
+      --wafu-accent: #6366f1;
+      --gold-accent: #4f46e5;
+
+      font-family: 'Shippori Mincho', serif;
+      background: #e0e7ff;
+      background-image: 
+        radial-gradient(circle at 50% 10%, rgba(224, 242, 254, 0.9) 0%, transparent 60%),
+        radial-gradient(circle at 80% 80%, rgba(199, 210, 254, 0.6) 0%, transparent 50%),
+        linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #e0e7ff 100%);
+      color: #1e1b4b;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+
+    /* Modern Theme Buttons Override */
     body.theme-modern .link-btn.x-btn {
       background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
       border: 1px solid rgba(255, 255, 255, 0.15);
@@ -109,6 +128,26 @@
       box-shadow: 0 6px 20px rgba(244, 63, 94, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4);
     }
 
+    /* Japanese (爽やか涼感) Theme Buttons Override */
+    body.theme-japanese .link-btn.x-btn {
+      background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      color: #ffffff;
+    }
+    body.theme-japanese .link-btn.ewgf-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+      border: 1px solid rgba(186, 230, 253, 0.4);
+      box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
+      color: #ffffff;
+    }
+    body.theme-japanese .link-btn.wavu-btn {
+      background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+      border: 1px solid rgba(221, 214, 254, 0.4);
+      box-shadow: 0 4px 10px rgba(124, 58, 237, 0.35);
+      color: #ffffff;
+    }
+
     /* Common Layout */
     .app-container {
       max-width: 1080px;
@@ -128,6 +167,16 @@
     body.theme-modern .board-container {
       background: transparent;
       padding: 0;
+    }
+
+    body.theme-japanese .board-container {
+      background: rgba(255, 255, 255, 0.6);
+      backdrop-filter: blur(16px);
+      border: 2px solid rgba(99, 102, 241, 0.25);
+      border-radius: 16px;
+      box-shadow: 0 20px 50px rgba(67, 56, 202, 0.12);
+      padding: 40px 30px;
+      position: relative;
     }
 
     body.theme-wanted .board-container::before, body.theme-wanted .board-container::after {
@@ -151,10 +200,8 @@
     .top-controls {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      gap: 12px;
+      justify-content: flex-start;
       margin-bottom: 20px;
-      flex-wrap: nowrap;
     }
 
     .status-badge {
@@ -170,6 +217,13 @@
       letter-spacing: 2px;
       flex-shrink: 0;
     }
+
+    body.theme-japanese .status-badge {
+      background: rgba(255, 255, 255, 0.8);
+      border-color: #6366f1;
+      color: #312e81;
+    }
+
     .status-badge .dot {
       width: 8px; height: 8px;
       background: #22c55e;
@@ -181,33 +235,61 @@
       box-shadow: 0 0 8px #ef4444;
     }
 
-    /* UI Theme Selector Switch Button (位置完全固定＆統一幅) */
-    .theme-switch-btn {
+    /* 画面右上固定 (position: fixed) UI Theme Select Box */
+    .theme-select-box {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      z-index: 90;
       display: inline-flex;
       align-items: center;
-      justify-content: center;
       gap: 6px;
       padding: 6px 14px;
-      background: rgba(255, 255, 255, 0.1);
+      background: rgba(0, 0, 0, 0.75);
       border: 1px solid var(--gold-accent);
       border-radius: 20px;
       color: #fff;
       font-size: 0.8rem;
       font-weight: 600;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      width: 175px;
+      transition: border-color 0.2s, background 0.2s;
+    }
+
+    body.theme-japanese .theme-select-box {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: #6366f1;
+      color: #312e81;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.25);
+    }
+
+    .theme-select-dropdown {
+      background: transparent;
+      border: none;
+      color: inherit;
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 700;
+      outline: none;
       cursor: pointer;
-      backdrop-filter: blur(8px);
-      transition: transform 0.2s, background 0.2s;
-      flex-shrink: 0;
-      min-width: 165px;
-      text-align: center;
+      width: 100%;
     }
 
-    body.theme-wanted .theme-switch-btn {
-      color: var(--gold-accent);
-      background: rgba(0,0,0,0.6);
+    .theme-select-dropdown option {
+      background: #1e1713;
+      color: #edd9b4;
     }
 
-    .theme-switch-btn:hover { transform: scale(1.05); }
+    body.theme-modern .theme-select-dropdown option {
+      background: #0a0a0f;
+      color: #fff;
+    }
+
+    body.theme-japanese .theme-select-dropdown option {
+      background: #ffffff;
+      color: #312e81;
+    }
 
     .saloon-title-wrap {
       border-radius: 6px;
@@ -227,6 +309,13 @@
       background: rgba(255, 255, 255, 0.03);
       border: 1px solid rgba(255, 255, 255, 0.1);
       backdrop-filter: blur(12px);
+    }
+
+    body.theme-japanese .saloon-title-wrap {
+      background: rgba(255, 255, 255, 0.8);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      box-shadow: 0 8px 24px rgba(67, 56, 202, 0.15);
+      border-radius: 12px;
     }
 
     .saloon-title {
@@ -253,6 +342,14 @@
       -webkit-text-fill-color: transparent;
     }
 
+    body.theme-japanese .saloon-title {
+      font-family: 'Shippori Mincho', serif;
+      font-weight: 800;
+      background: linear-gradient(135deg, #312e81 0%, #4338ca 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
     .title-input {
       font-size: 2.2rem;
       background: #140c07;
@@ -274,6 +371,7 @@
 
     body.theme-wanted .saloon-subtitle { color: #d1b894; }
     body.theme-modern .saloon-subtitle { color: var(--text-secondary); }
+    body.theme-japanese .saloon-subtitle { color: #4338ca; font-weight: 600; }
 
     .btn-add-bounty {
       margin-top: 24px;
@@ -304,6 +402,15 @@
       font-family: 'Inter', sans-serif;
     }
 
+    body.theme-japanese .btn-add-bounty {
+      background: linear-gradient(135deg, #4338ca 0%, #312e81 100%);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      color: #ffffff;
+      border-radius: 12px;
+      font-family: 'Shippori Mincho', serif;
+      box-shadow: 0 6px 16px rgba(67, 56, 202, 0.35);
+    }
+
     /* Grid */
     .poster-grid {
       display: grid;
@@ -319,6 +426,7 @@
       flex-direction: column;
     }
 
+    /* Theme 1: Wanted Card */
     body.theme-wanted .poster-card {
       background: var(--parchment-bg);
       background-image: 
@@ -336,6 +444,7 @@
       z-index: 10;
     }
 
+    /* Theme 2: Modern Card */
     body.theme-modern .poster-card {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -349,6 +458,22 @@
       border-color: rgba(129, 140, 248, 0.4);
       transform: translateY(-4px);
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    /* Theme 3: Japanese Card (爽やか涼感・藤紫ヘキサゴン手配札) */
+    body.theme-japanese .poster-card {
+      background: linear-gradient(180deg, #4338ca 0%, #312e81 100%);
+      border: 1.5px solid rgba(199, 210, 254, 0.5);
+      border-radius: 16px 16px 28px 28px;
+      padding: 24px 20px 20px;
+      box-shadow: 0 12px 32px rgba(49, 46, 129, 0.35);
+      color: #ffffff;
+    }
+    body.theme-japanese .poster-card:hover {
+      transform: translateY(-4px);
+      border-color: #ffffff;
+      box-shadow: 0 18px 40px rgba(67, 56, 202, 0.5);
+      z-index: 10;
     }
 
     .poster-pin {
@@ -365,30 +490,69 @@
     }
 
     body.theme-modern .poster-pin { display: none; }
+    body.theme-japanese .poster-pin {
+      top: 8px;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    body.theme-japanese .poster-pin::after {
+      content: '✦';
+      color: #fff;
+      font-size: 0.75rem;
+    }
 
     .poster-header-text {
       text-align: center;
-      font-family: 'Rye', cursive;
       font-size: 2.2rem;
-      color: var(--text-red);
-      letter-spacing: 4px;
       line-height: 1;
       margin-bottom: 2px;
+    }
+
+    body.theme-wanted .poster-header-text {
+      font-family: 'Rye', cursive;
+      color: var(--text-red);
+      letter-spacing: 4px;
+    }
+
+    body.theme-japanese .poster-header-text {
+      font-family: 'Shippori Mincho', serif;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 6px;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
     }
 
     body.theme-modern .poster-header-text { display: none; }
 
     .poster-sub-header {
       text-align: center;
-      font-family: 'Cinzel', serif;
       font-size: 0.75rem;
       font-weight: 900;
+      padding: 2px 0;
+      margin-bottom: 14px;
+    }
+
+    body.theme-wanted .poster-sub-header {
+      font-family: 'Cinzel', serif;
       color: var(--text-ink);
       letter-spacing: 3px;
       border-top: 2px solid var(--text-ink);
       border-bottom: 2px solid var(--text-ink);
-      padding: 2px 0;
-      margin-bottom: 14px;
+    }
+
+    body.theme-japanese .poster-sub-header {
+      font-family: 'Shippori Mincho', serif;
+      color: #c7d2fe;
+      letter-spacing: 4px;
+      border-top: 1px solid rgba(255,255,255,0.3);
+      border-bottom: 1px solid rgba(255,255,255,0.3);
     }
 
     body.theme-modern .poster-sub-header { display: none; }
@@ -411,6 +575,12 @@
       box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     }
 
+    body.theme-japanese .avatar-frame {
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      border-radius: 12px;
+      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+    }
+
     body.theme-modern .avatar-frame {
       border-radius: 12px;
       height: 150px;
@@ -423,9 +593,7 @@
       object-fit: cover;
     }
 
-    body.theme-wanted .avatar-frame img {
-      filter: sepia(0.15) contrast(1.05);
-    }
+    body.theme-wanted .avatar-frame img { filter: sepia(0.15) contrast(1.05); }
 
     .avatar-initials {
       font-size: 3.5rem;
@@ -443,6 +611,7 @@
     }
 
     body.theme-wanted .poster-name { font-family: 'Shippori Mincho', serif; color: var(--text-ink); }
+    body.theme-japanese .poster-name { font-family: 'Shippori Mincho', serif; color: #ffffff; font-weight: 800; }
     body.theme-modern .poster-name { font-family: 'Inter', sans-serif; color: #fff; }
 
     .poster-nickname {
@@ -453,6 +622,7 @@
     }
 
     body.theme-wanted .poster-nickname { color: #5c3a21; }
+    body.theme-japanese .poster-nickname { color: #c7d2fe; font-style: normal; }
     body.theme-modern .poster-nickname { color: var(--text-secondary); }
 
     .id-box {
@@ -471,6 +641,12 @@
       border: 1px dashed var(--parchment-border);
     }
 
+    body.theme-japanese .id-box {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 8px;
+    }
+
     body.theme-modern .id-box {
       background: rgba(0,0,0,0.3);
       border: 1px solid rgba(255,255,255,0.08);
@@ -484,6 +660,7 @@
     }
 
     body.theme-wanted .id-label { color: #6b4c33; }
+    body.theme-japanese .id-label { color: #c7d2fe; }
     body.theme-modern .id-label { color: var(--text-secondary); }
 
     .id-value {
@@ -494,6 +671,7 @@
     }
 
     body.theme-wanted .id-value { color: var(--text-red); }
+    body.theme-japanese .id-value { color: #a5f3fc; }
     body.theme-modern .id-value { color: #6ee7b7; }
 
     .copy-badge {
@@ -502,6 +680,7 @@
     }
 
     body.theme-wanted .copy-badge { color: #6b4c33; }
+    body.theme-japanese .copy-badge { color: #c7d2fe; }
     body.theme-modern .copy-badge { color: var(--text-secondary); }
 
     .links-grid {
@@ -526,7 +705,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
-    body.theme-modern .link-btn { border-radius: 8px; }
+    body.theme-modern .link-btn, body.theme-japanese .link-btn { border-radius: 8px; }
 
     .link-btn:hover {
       opacity: 0.9;
@@ -801,19 +980,15 @@
       color: var(--gold-accent);
     }
 
-    /* Mobile Optimization (スマホ表示時の完全位置固定＆レイアウト安定化) */
+    /* Mobile Optimization */
     @media (max-width: 640px) {
       body { padding: 12px 8px 48px; }
-      body.theme-wanted .board-container, body.theme-modern .board-container {
+      body.theme-wanted .board-container, body.theme-modern .board-container, body.theme-japanese .board-container {
         padding: 16px 10px;
         border-width: 6px;
       }
       
-      .top-controls {
-        margin-bottom: 16px;
-        justify-content: space-between;
-        align-items: center;
-      }
+      .top-controls { margin-bottom: 16px; }
 
       .status-badge {
         padding: 4px 10px;
@@ -821,9 +996,11 @@
         letter-spacing: 1px;
       }
 
-      .theme-switch-btn {
-        min-width: 145px;
-        padding: 5px 10px;
+      .theme-select-box {
+        top: 12px;
+        right: 12px;
+        width: 145px;
+        padding: 4px 8px;
         font-size: 0.72rem;
       }
 
@@ -837,7 +1014,7 @@
         padding: 4px 0;
       }
 
-      body.theme-wanted .poster-card { padding: 14px 10px 12px; }
+      body.theme-wanted .poster-card, body.theme-japanese .poster-card { padding: 14px 10px 12px; }
       body.theme-modern .poster-card { padding: 12px 10px; border-radius: 12px; }
 
       .poster-pin { width: 10px; height: 10px; top: 4px; }
@@ -866,6 +1043,16 @@
 </head>
 <body class="theme-wanted">
 
+  <!-- 画面右上固定 (position: fixed) のUI切り替えボックス -->
+  <div class="theme-select-box">
+    <span>🎨</span>
+    <select id="themeSelectDropdown" class="theme-select-dropdown" onchange="selectTheme(this.value)" aria-label="UIテーマ選択">
+      <option value="wanted">WANTED (酒場)</option>
+      <option value="modern">MODERN (ネオン)</option>
+      <option value="japanese">JAPANESE (涼風和風)</option>
+    </select>
+  </div>
+
   <div class="app-container">
     <div class="board-container">
       
@@ -874,10 +1061,6 @@
           <span class="dot" id="statusDot"></span>
           <span id="statusText">CONNECTING SALOON</span>
         </div>
-        <!-- UI Theme Switcher Button -->
-        <button class="theme-switch-btn" onclick="toggleTheme()">
-          🎨 <span id="themeToggleText">UI切替: WANTED</span>
-        </button>
       </div>
 
       <header class="saloon-header">
@@ -931,7 +1114,7 @@
 
         <div class="form-group">
           <label class="form-label" for="inputSubtitle">二名 / 役職 / メモ</label>
-          <input class="form-input" type="text" id="inputSubtitle" placeholder="例: 狂乱の風神ステップ" maxlength="40">
+          <input class="form-input" type="text" id="inputSubtitle" placeholder="例: 俺は全てを支配する" maxlength="40">
         </div>
 
         <div class="form-group">
@@ -1037,7 +1220,7 @@
     let selectedColor = PRESET_COLORS[0];
     let toastTimer = null;
     let cropper = null;
-    let currentTheme = 'wanted'; // 'wanted' or 'modern'
+    let currentTheme = 'wanted'; // 'wanted', 'modern', or 'japanese'
 
     function cleanTekkenId(rawId) {
       if (!rawId) return '';
@@ -1053,9 +1236,10 @@
 
     function init() {
       const savedTheme = localStorage.getItem('preferred_theme');
-      if (savedTheme === 'modern' || savedTheme === 'wanted') {
+      if (['wanted', 'modern', 'japanese'].includes(savedTheme)) {
         currentTheme = savedTheme;
       }
+      document.getElementById('themeSelectDropdown').value = currentTheme;
       applyTheme(currentTheme);
 
       try {
@@ -1069,7 +1253,9 @@
           const text = document.getElementById('statusText');
           if (snap.val() === true) {
             dot.classList.remove('offline');
-            text.textContent = currentTheme === 'wanted' ? 'SALOON ONLINE' : 'ONLINE';
+            if (currentTheme === 'wanted') text.textContent = 'SALOON ONLINE';
+            else if (currentTheme === 'japanese') text.textContent = '涼風 ONLINE';
+            else text.textContent = 'ONLINE';
           } else {
             dot.classList.add('offline');
             text.textContent = 'OFFLINE';
@@ -1096,27 +1282,32 @@
       }
     }
 
-    function toggleTheme() {
-      currentTheme = currentTheme === 'wanted' ? 'modern' : 'wanted';
+    function selectTheme(newTheme) {
+      currentTheme = newTheme;
       localStorage.setItem('preferred_theme', currentTheme);
       applyTheme(currentTheme);
-      showToast(`UIテーマを [ ${currentTheme === 'wanted' ? 'WANTED (酒場)' : 'MODERN (ネオン)'} ] に変更しました`);
+      
+      let themeLabel = 'WANTED (酒場)';
+      if (currentTheme === 'modern') themeLabel = 'MODERN (ネオン)';
+      if (currentTheme === 'japanese') themeLabel = 'JAPANESE (涼風和風)';
+      
+      showToast(`UIテーマを [ ${themeLabel} ] に変更しました`);
     }
 
     function applyTheme(theme) {
       document.body.className = `theme-${theme}`;
-      const toggleBtnText = document.getElementById('themeToggleText');
       const statusText = document.getElementById('statusText');
       const btnAdd = document.getElementById('btnAddMember');
 
       if (theme === 'wanted') {
-        toggleBtnText.textContent = 'UI切替: WANTED';
-        if (statusText.textContent === 'ONLINE') statusText.textContent = 'SALOON ONLINE';
+        if (statusText.textContent.includes('ONLINE')) statusText.textContent = 'SALOON ONLINE';
         btnAdd.innerHTML = '➕ 手配書（メンバー）を追加';
-      } else {
-        toggleBtnText.textContent = 'UI切替: MODERN';
-        if (statusText.textContent === 'SALOON ONLINE') statusText.textContent = 'ONLINE';
+      } else if (theme === 'modern') {
+        if (statusText.textContent.includes('ONLINE')) statusText.textContent = 'ONLINE';
         btnAdd.innerHTML = '➕ メンバーを追加';
+      } else {
+        if (statusText.textContent.includes('ONLINE')) statusText.textContent = '涼風 ONLINE';
+        btnAdd.innerHTML = '➕ 手配札（メンバー）を追加';
       }
 
       if (membersRef) {
@@ -1295,21 +1486,32 @@
           ? `<a class="link-btn x-btn" href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">${ICON_X} SNS (X)</a>`
           : '';
 
+        let headerText = 'WANTED';
+        let subHeaderText = 'DEAD OR ALIVE';
+        if (currentTheme === 'japanese') {
+          headerText = '御触書';
+          subHeaderText = '指名手配札';
+        }
+
+        let defaultSubtitle = '手配中';
+        if (currentTheme === 'modern') defaultSubtitle = 'Member';
+        if (currentTheme === 'japanese') defaultSubtitle = '手配者';
+
         card.innerHTML = `
           <div class="poster-pin"></div>
           <div class="card-admin-actions">
             <button class="admin-icon-btn" onclick="openEditModal('${key}')" title="編集">${ICON_EDIT}</button>
             <button class="admin-icon-btn delete" onclick="openDeleteModal('${key}', '${escapeHtml(m.name)}')" title="削除">${ICON_DELETE}</button>
           </div>
-          <div class="poster-header-text">WANTED</div>
-          <div class="poster-sub-header">DEAD OR ALIVE</div>
+          <div class="poster-header-text">${headerText}</div>
+          <div class="poster-sub-header">${subHeaderText}</div>
           
           <div class="avatar-frame" style="background: linear-gradient(135deg, ${avatarBg} 0%, #111 100%);">
             ${photoHtml}
           </div>
 
           <div class="poster-name">${escapeHtml(m.name)}</div>
-          <div class="poster-nickname">${escapeHtml(m.subtitle || (currentTheme === 'wanted' ? '手配中' : 'Member'))}</div>
+          <div class="poster-nickname">${escapeHtml(m.subtitle || defaultSubtitle)}</div>
 
           <div class="id-box" onclick="copyId('${escapeHtml(cleanGameId)}', '${escapeHtml(m.name)}')">
             <div>
@@ -1353,7 +1555,11 @@
 
     function openAddModal() {
       document.getElementById('modalTitle').textContent = 'メンバーを作成';
-      document.getElementById('btnSaveSubmit').textContent = currentTheme === 'wanted' ? '手配書を貼り付ける' : '保存する';
+      let btnLabel = '保存する';
+      if (currentTheme === 'wanted') btnLabel = '手配書を貼り付ける';
+      if (currentTheme === 'japanese') btnLabel = '手配カードを作成';
+      document.getElementById('btnSaveSubmit').textContent = btnLabel;
+
       document.getElementById('editKey').value = '';
       document.getElementById('inputName').value = '';
       document.getElementById('inputId').value = '';
@@ -1371,7 +1577,11 @@
         const m = snap.val();
         if (!m) return;
         document.getElementById('modalTitle').textContent = 'メンバーを編集';
-        document.getElementById('btnSaveSubmit').textContent = currentTheme === 'wanted' ? '手配書を更新する' : '保存する';
+        let btnLabel = '保存する';
+        if (currentTheme === 'wanted') btnLabel = '手配書を更新する';
+        if (currentTheme === 'japanese') btnLabel = '手配カードを更新';
+        document.getElementById('btnSaveSubmit').textContent = btnLabel;
+
         document.getElementById('editKey').value = key;
         document.getElementById('inputName').value = m.name || '';
         document.getElementById('inputId').value = cleanTekkenId(m.gameId);
