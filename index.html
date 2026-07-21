@@ -618,7 +618,116 @@
       text-align: center;
       font-size: 0.85rem;
       margin-bottom: 12px;
-      font-style: italic;
+      opacity: 0.8;
+    }
+
+    /* ===== Prototype Stats & Radar Chart Styles ===== */
+    .card-stats-container {
+      margin: 8px 0 10px;
+      padding: 10px 8px;
+      border-radius: 6px;
+      background: rgba(0, 0, 0, 0.05);
+      border: 1px dashed rgba(43, 26, 14, 0.3);
+      text-align: center;
+      position: relative;
+    }
+    body.theme-modern .card-stats-container {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+    body.theme-japanese .card-stats-container {
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+    }
+
+    .last-seen-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 12px;
+      margin-bottom: 6px;
+      letter-spacing: 0.3px;
+    }
+    .last-seen-badge.active {
+      background: rgba(220, 38, 38, 0.15);
+      color: #991b1b;
+      border: 1px solid #ef4444;
+    }
+    .last-seen-badge.recent {
+      background: rgba(217, 119, 6, 0.15);
+      color: #92400e;
+      border: 1px solid #f59e0b;
+    }
+    .last-seen-badge.inactive {
+      background: rgba(75, 85, 99, 0.15);
+      color: #374151;
+      border: 1px solid #9ca3af;
+    }
+    body.theme-modern .last-seen-badge.active { color: #f87171; border-color: rgba(239, 68, 68, 0.5); }
+    body.theme-modern .last-seen-badge.recent { color: #fbbf24; border-color: rgba(245, 158, 11, 0.5); }
+    body.theme-modern .last-seen-badge.inactive { color: #9ca3af; border-color: rgba(156, 163, 175, 0.5); }
+
+    body.theme-japanese .last-seen-badge.active { color: #991b1b; }
+    body.theme-japanese .last-seen-badge.recent { color: #92400e; }
+    body.theme-japanese .last-seen-badge.inactive { color: #374151; }
+
+    .radar-canvas-wrapper {
+      position: relative;
+      width: 100%;
+      height: 140px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 4px 0;
+    }
+    .radar-canvas {
+      width: 170px;
+      height: 135px;
+    }
+
+    .stats-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      font-size: 0.7rem;
+      margin-top: 6px;
+      padding-top: 4px;
+      border-top: 1px dotted rgba(0,0,0,0.15);
+      font-weight: 600;
+    }
+    body.theme-modern .stats-info-grid { border-top-color: rgba(255,255,255,0.1); color: #cbd5e1; }
+    body.theme-japanese .stats-info-grid { border-top-color: rgba(99, 102, 241, 0.2); color: #312e81; }
+
+    .stats-info-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 1px 4px;
+    }
+    .stats-info-label { opacity: 0.75; }
+    .stats-info-val { font-weight: 700; }
+
+    .card-refresh-btn {
+      background: transparent;
+      border: 1px dashed var(--gold-accent);
+      color: var(--text-ink);
+      padding: 3px 8px;
+      font-size: 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    body.theme-modern .card-refresh-btn { color: #e2e8f0; border-color: rgba(255,255,255,0.25); }
+    body.theme-japanese .card-refresh-btn { color: #312e81; border-color: #6366f1; }
+    .card-refresh-btn:hover {
+      background: rgba(212, 175, 55, 0.2);
     }
 
     body.theme-wanted .poster-nickname { color: #5c3a21; }
@@ -1101,10 +1210,22 @@
   <div class="app-container">
     <div class="board-container">
       
-      <div class="top-controls">
+      <div class="top-controls" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div class="status-badge">
           <span class="dot" id="statusDot"></span>
           <span id="statusText">CONNECTING SALOON</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+          <span id="apiQuotaText" style="font-size: 0.72rem; opacity: 0.9; font-weight: 600; background: rgba(0,0,0,0.4); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--gold-accent);">
+            🔑 ewgf API 本日使用: 約3回 (1日100回目安・12hキャッシュ)
+          </span>
+          <button class="btn-wood" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 4px;" onclick="promptCustomWorkerUrl()">
+            🌐 Worker設定
+          </button>
+          <button class="btn-wood" style="padding: 5px 12px; font-size: 0.75rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" onclick="refreshAllWavuStats()">
+            ⚡ 全ステータス一括更新
+          </button>
         </div>
       </div>
 
@@ -1166,6 +1287,34 @@
           <label class="form-label" for="inputXUrl">X (Twitter) URL または ユーザー名</label>
           <input class="form-input" type="text" id="inputXUrl" placeholder="例: @username または URL" maxlength="200">
           <div class="form-note">※アカウントをお持ちでない場合は空欄のまま保存してください。（カード上のXボタンが非表示になります）</div>
+        </div>
+
+        <!-- 手動ステータス（ペンタゴン）カスタム項目 -->
+        <div class="form-group" style="border: 1px dashed var(--gold-accent); padding: 12px; border-radius: 6px; background: rgba(0,0,0,0.25);">
+          <label class="form-label" style="margin-bottom: 8px;">📊 鉄拳8 5角形能力値（手動カスタマイズ）</label>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.78rem;">
+            <div>
+              <label style="display:block; margin-bottom:2px;">ATTACK (攻撃力): <span id="valAttack">75</span></label>
+              <input type="range" id="inputAttack" min="10" max="100" value="75" style="width:100%" oninput="document.getElementById('valAttack').textContent=this.value">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:2px;">DEFENSE (防御力): <span id="valDefense">70</span></label>
+              <input type="range" id="inputDefense" min="10" max="100" value="70" style="width:100%" oninput="document.getElementById('valDefense').textContent=this.value">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:2px;">TECH (手法): <span id="valTech">80</span></label>
+              <input type="range" id="inputTech" min="10" max="100" value="80" style="width:100%" oninput="document.getElementById('valTech').textContent=this.value">
+            </div>
+            <div>
+              <label style="display:block; margin-bottom:2px;">SPIRIT (精神力): <span id="valSpirit">85</span></label>
+              <input type="range" id="inputSpirit" min="10" max="100" value="85" style="width:100%" oninput="document.getElementById('valSpirit').textContent=this.value">
+            </div>
+            <div style="grid-column: span 2;">
+              <label style="display:block; margin-bottom:2px;">APPEAL (アピール): <span id="valAppeal">75</span></label>
+              <input type="range" id="inputAppeal" min="10" max="100" value="75" style="width:100%" oninput="document.getElementById('valAppeal').textContent=this.value">
+            </div>
+          </div>
+          <div class="form-note" style="margin-top:6px;">※外部取得が失敗した場合や、賞金首ごとに好きな能力値を演出したい時に調整できます。</div>
         </div>
 
         <!-- Photo Upload & Drag/Drop Area -->
@@ -1451,41 +1600,416 @@
       return name.slice(0, 2);
     }
 
-    function renderColorPresets() {
-      const container = document.getElementById('colorPresets');
-      container.innerHTML = '';
-      PRESET_COLORS.forEach(color => {
-        const swatch = document.createElement('div');
-        swatch.className = 'color-swatch' + (color === selectedColor ? ' selected' : '');
-        swatch.style.background = color;
-        swatch.addEventListener('click', () => selectColor(color));
-        container.appendChild(swatch);
-      });
+    /* ===== Prototype Stats & Radar Chart Logic (ewgf.gg Official API) ===== */
+    const DEFAULT_EWGF_API_KEY = 'ewgf_48599735d7a64a109401945131210139';
+    const LOCAL_STATS_CACHE_KEY = 't8_wanted_ewgf_stats_v1';
+    const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 1日100回制限対策: 12時間キャッシュ
+
+    function getEwgfApiKey() {
+      return localStorage.getItem('t8_ewgf_api_key') || DEFAULT_EWGF_API_KEY;
     }
 
-    function selectColor(color) {
-      selectedColor = color;
-      document.querySelectorAll('.color-swatch').forEach(s => {
-        s.classList.toggle('selected', s.style.background === color || s.style.backgroundColor === color);
-      });
+    function setEwgfApiKey(key) {
+      if (key) localStorage.setItem('t8_ewgf_api_key', key.trim());
     }
 
-    function setPhotoPreview(url) {
-      document.getElementById('photoData').value = url || '';
-      const preview = document.getElementById('photoPreview');
-      const btnRemove = document.getElementById('btnRemovePhoto');
-      if (url) {
-        preview.innerHTML = `<img src="${url}" alt="Preview">`;
-        btnRemove.style.display = 'inline-block';
-      } else {
-        preview.innerHTML = `<span>無画像</span>`;
-        btnRemove.style.display = 'none';
+    function getLocalStats(gameId) {
+      try {
+        const raw = localStorage.getItem(`${LOCAL_STATS_CACHE_KEY}_${gameId}`);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
       }
     }
 
-    function removePhoto() {
-      document.getElementById('inputPhotoFile').value = '';
-      setPhotoPreview('');
+    function setLocalStats(gameId, stats) {
+      try {
+        stats.cachedAt = Date.now();
+        localStorage.setItem(`${LOCAL_STATS_CACHE_KEY}_${gameId}`, JSON.stringify(stats));
+      } catch (e) {
+        console.error('LocalStorage write error', e);
+      }
+    }
+
+    function formatTimeAgo(ts) {
+      if (!ts) return '未計測';
+      const diffSec = Math.floor((Date.now() - ts) / 1000);
+      if (diffSec < 60) return 'たった今';
+      const diffMin = Math.floor(diffSec / 60);
+      if (diffMin < 60) return `${diffMin}分前`;
+      const diffHour = Math.floor(diffMin / 60);
+      if (diffHour < 24) return `${diffHour}時間前`;
+      const diffDay = Math.floor(diffHour / 24);
+      if (diffDay < 30) return `${diffDay}日前`;
+      return new Date(ts).toLocaleDateString('ja-JP');
+    }
+
+    function formatExactDateTime(ts) {
+      if (!ts) return '';
+      const d = new Date(ts);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const date = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}/${month}/${date} ${hours}:${minutes}`;
+    }
+
+    function getLastSeenBadgeHtml(ts) {
+      if (!ts) {
+        return `<div class="last-seen-badge inactive">❓ 最終対戦: データ未取得</div>`;
+      }
+      const diffHour = (Date.now() - ts) / (1000 * 3600);
+      const timeStr = formatTimeAgo(ts);
+      const exactStr = formatExactDateTime(ts);
+      const dateDisp = exactStr ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px;">(${exactStr})</span>` : '';
+
+      if (diffHour <= 24) {
+        return `<div class="last-seen-badge active" title="最新対戦日時: ${exactStr}">🔥 最終対戦: ${timeStr} ${dateDisp}</div>`;
+      } else if (diffHour <= 168) {
+        return `<div class="last-seen-badge recent" title="最新対戦日時: ${exactStr}">⚡ 最終対戦: ${timeStr} ${dateDisp}</div>`;
+      } else {
+        return `<div class="last-seen-badge inactive" title="最新対戦日時: ${exactStr}">💤 最終対戦: ${timeStr} ${dateDisp}</div>`;
+      }
+    }
+
+    let globalApiCallCount = 0;
+
+    function incrementApiCallCounter() {
+      globalApiCallCount++;
+      try {
+        const currentCount = parseInt(localStorage.getItem('t8_ewgf_api_call_count') || '0', 10) + 1;
+        localStorage.setItem('t8_ewgf_api_call_count', currentCount.toString());
+        updateApiCallBadge(currentCount);
+      } catch (e) {}
+    }
+
+    function updateApiCallBadge(count) {
+      const badge = document.getElementById('apiQuotaText');
+      if (badge) {
+        const savedCount = count || parseInt(localStorage.getItem('t8_ewgf_api_call_count') || '0', 10);
+        const remaining = Math.max(0, 100 - (savedCount % 100));
+        badge.textContent = `🔑 ewgf API 本日使用: 約${savedCount}回 (残り ${remaining}/100回目安・12hキャッシュ)`;
+      }
+    }
+
+    function getCustomWorkerUrl() {
+      return localStorage.getItem('t8_custom_worker_url') || '';
+    }
+
+    function setCustomWorkerUrl(url) {
+      if (url) localStorage.setItem('t8_custom_worker_url', url.trim());
+      else localStorage.removeItem('t8_custom_worker_url');
+    }
+
+    function promptCustomWorkerUrl() {
+      const current = getCustomWorkerUrl();
+      const res = prompt('Cloudflare Worker (または Wavu プロキシ) の URL を入力してください:\n(例: https://my-wavu-proxy.workers.dev)', current);
+      if (res !== null) {
+        setCustomWorkerUrl(res);
+        if (res.trim()) {
+          showToast('🌐 自前 Worker URL を保存しました！');
+        } else {
+          showToast('🧹 Worker URL をクリアしました');
+        }
+      }
+    }
+
+    // wank.wavu.wiki から正真正銘の本物 μ レート (Glicko-2 Elo) を100%抽出
+    async function fetchRealWavuRating(cleanId) {
+      // 自前 Worker URL が設定されている場合は優先使用 (Cloudflare ブロック完全回避)
+      const customWorker = getCustomWorkerUrl();
+      if (customWorker) {
+        try {
+          const workerEndpoint = `${customWorker.replace(/\/$/, '')}?gameId=${encodeURIComponent(cleanId)}`;
+          const res = await fetch(workerEndpoint);
+          if (res.ok) {
+            const data = await res.json();
+            if (data && data.ratingMu !== undefined && data.ratingMu !== null) {
+              return data.ratingMu;
+            }
+          }
+        } catch (e) {
+          console.warn('Custom Worker fetch failed:', e);
+        }
+      }
+
+      const targetUrl = `https://wank.wavu.wiki/player/${encodeURIComponent(cleanId)}`;
+      const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
+      ];
+
+      for (const url of proxies) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
+          const res = await fetch(url, { signal: controller.signal });
+          clearTimeout(timeoutId);
+
+          if (res.ok) {
+            const html = await res.text();
+            
+            // 埋め込み JSON script: const data = [{"battle_at":...,"rating_after":1197,"rating_before":1175,...}]
+            const jsonMatch = html.match(/const\s+data\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
+            if (jsonMatch) {
+              try {
+                const battleData = JSON.parse(jsonMatch[1]);
+                if (battleData && battleData.length > 0) {
+                  const latest = battleData[0];
+                  const exactMu = latest.rating_after !== undefined ? latest.rating_after : latest.rating_before;
+                  if (exactMu !== undefined && exactMu !== null) {
+                    return exactMu;
+                  }
+                }
+              } catch (e) {
+                console.warn('Wavu JSON parse error:', e);
+              }
+            }
+
+            // フォールバック: HTML内の game-list から抽出
+            const gameListMatch = html.match(/class="game-list"[\s\S]*?class="rating"[\s\S]*?\b(\d{3,4})\b/);
+            if (gameListMatch) {
+              return parseInt(gameListMatch[1], 10);
+            }
+          }
+        } catch (e) {
+          console.warn(`Wavu proxy fetch failed for ${url}:`, e);
+        }
+      }
+      return null;
+    }
+
+    async function fetchEwgfStats(gameId, forceRefresh = false) {
+      const cleanId = cleanTekkenId(gameId);
+      const cached = getLocalStats(cleanId);
+
+      // 12時間以内のキャッシュがあり、強制的更新でなければそのまま返す (1日100回クォータの徹底節約)
+      if (!forceRefresh && cached && (Date.now() - (cached.cachedAt || 0) < CACHE_TTL_MS) && !cached.isError) {
+        return cached;
+      }
+
+      const apiKey = getEwgfApiKey();
+      if (!apiKey) {
+        const errStats = cached || { gameId: cleanId, mainChar: 'API Key未設定', isError: true };
+        return errStats;
+      }
+
+      try {
+        incrementApiCallCounter(); // API呼び出しをカウント
+
+        const res = await fetch(`https://api.ewgf.gg/external/battles/${encodeURIComponent(cleanId)}`, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`
+          }
+        });
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const json = await res.json();
+        const battles = Array.isArray(json) ? json : (json.data || []);
+
+        if (battles && battles.length > 0) {
+          const latestBattle = battles[0];
+          const isP1 = cleanTekkenId(latestBattle.p1_tekken_id) === cleanTekkenId(cleanId);
+          const playerChar = isP1 ? latestBattle.p1_char : latestBattle.p2_char;
+          const playerRank = isP1 ? latestBattle.p1_dan_rank : latestBattle.p2_dan_rank;
+          const playerPower = isP1 ? latestBattle.p1_tekken_power : latestBattle.p2_tekken_power;
+
+          let battleTs = null;
+          if (latestBattle.battle_at) {
+            battleTs = new Date(latestBattle.battle_at).getTime();
+          }
+
+          // wank.wavu.wiki から正真正銘の最新本物 μ レートを取得
+          const realMu = await fetchRealWavuRating(cleanId);
+
+          const statsData = {
+            gameId: cleanId,
+            mainChar: playerChar || 'Unknown',
+            danRank: playerRank || 'Unranked',
+            tekkenPower: playerPower || 0,
+            ratingMu: realMu !== null ? realMu : (cached ? cached.ratingMu : null),
+            lastSeenTimestamp: battleTs || Date.now(),
+            totalBattlesFetched: battles.length,
+            updatedAt: Date.now()
+          };
+
+          setLocalStats(cleanId, statsData);
+          return statsData;
+        } else {
+          const noBattleStats = cached || {
+            gameId: cleanId,
+            mainChar: '対戦記録なし',
+            danRank: '-',
+            tekkenPower: 0,
+            ratingMu: null,
+            lastSeenTimestamp: null,
+            updatedAt: Date.now()
+          };
+          setLocalStats(cleanId, noBattleStats);
+          return noBattleStats;
+        }
+      } catch (err) {
+        console.warn(`ewgf API fetch error for ${cleanId}:`, err);
+        const errorStats = cached || {
+          gameId: cleanId,
+          mainChar: '通信エラー',
+          danRank: '-',
+          tekkenPower: 0,
+          ratingMu: null,
+          lastSeenTimestamp: null,
+          isError: true,
+          updatedAt: Date.now()
+        };
+        setLocalStats(cleanId, errorStats);
+        return errorStats;
+      }
+    }
+
+    function drawRadarChart(canvasId, stats) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+
+      const width = canvas.clientWidth || 170;
+      const height = canvas.clientHeight || 135;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
+
+      ctx.clearRect(0, 0, width, height);
+
+      const centerX = width / 2;
+      const centerY = height / 2 + 5;
+      const radius = Math.min(width, height) / 2 - 22;
+      const sides = 5;
+
+      // 本物の ewgf / 鉄拳8公式 5角形レーダーチャートの配置（頂点から時計回り）：
+      // 0: 12時(てっぺん) -> ATTACK (攻撃)
+      // 1: 右上           -> TECHNIQUE (技術)
+      // 2: 右下           -> APPEAL (魅力)
+      // 3: 左下           -> SPIRIT (精神)
+      // 4: 左上           -> DEFENSE (防御)
+      const labels = ['ATTACK', 'TECH', 'APPEAL', 'SPIRIT', 'DEFENSE'];
+
+      // 自前のでっちあげプロット計算は完全全廃！
+      // ユーザーが手動編集 modal で入力・プロットした customStats のみ描画する
+      let scores = null;
+      if (stats && stats.customStats) {
+        scores = [
+          (stats.customStats.attack || 50) / 100,
+          (stats.customStats.technique || 50) / 100,
+          (stats.customStats.appeal || 50) / 100,
+          (stats.customStats.spirit || 50) / 100,
+          (stats.customStats.defense || 50) / 100
+        ];
+      }
+
+      ctx.strokeStyle = currentTheme === 'modern' ? 'rgba(255,255,255,0.15)' : (currentTheme === 'japanese' ? 'rgba(99,102,241,0.25)' : 'rgba(140,106,70,0.3)');
+      ctx.lineWidth = 1;
+
+      for (let level = 1; level <= 3; level++) {
+        const r = (radius / 3) * level;
+        ctx.beginPath();
+        for (let i = 0; i < sides; i++) {
+          const angle = (Math.PI * 2 / sides) * i - Math.PI / 2;
+          const x = centerX + r * Math.cos(angle);
+          const y = centerY + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      ctx.font = '700 7.5px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = currentTheme === 'modern' ? '#94a3b8' : (currentTheme === 'japanese' ? '#4338ca' : '#5c3a21');
+
+      for (let i = 0; i < sides; i++) {
+        const angle = (Math.PI * 2 / sides) * i - Math.PI / 2;
+        const x = centerX + radius * Math.cos(angle);
+        const y = centerY + radius * Math.sin(angle);
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(x, y);
+        ctx.stroke();
+
+        const labelX = centerX + (radius + 12) * Math.cos(angle);
+        const labelY = centerY + (radius + 9) * Math.sin(angle);
+        ctx.fillText(labels[i], labelX, labelY);
+      }
+
+      if (scores) {
+        ctx.beginPath();
+        for (let i = 0; i < sides; i++) {
+          const angle = (Math.PI * 2 / sides) * i - Math.PI / 2;
+          const r = radius * scores[i];
+          const x = centerX + r * Math.cos(angle);
+          const y = centerY + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.closePath();
+
+        if (currentTheme === 'modern') {
+          ctx.fillStyle = 'rgba(129, 140, 248, 0.4)';
+          ctx.strokeStyle = '#818cf8';
+        } else if (currentTheme === 'japanese') {
+          ctx.fillStyle = 'rgba(99, 102, 241, 0.35)';
+          ctx.strokeStyle = '#4338ca';
+        } else {
+          ctx.fillStyle = 'rgba(139, 0, 0, 0.35)';
+          ctx.strokeStyle = '#8b0000';
+        }
+        ctx.lineWidth = 2;
+        ctx.fill();
+        ctx.stroke();
+      } else {
+        // 自前推測でっちあげ全廃時のガイド表示
+        ctx.font = '600 7px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = currentTheme === 'modern' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.3)';
+        ctx.fillText('編集でグラフ設定', centerX, centerY);
+      }
+    }
+
+    async function refreshCardStats(gameId, key) {
+      showToast(`🔄 ewgf API から ID[${gameId}] の対戦データを取得中...`);
+      const stats = await fetchEwgfStats(gameId, true);
+      const container = document.getElementById(`stats_box_${key}`);
+      if (container) {
+        container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
+        const mainCharEl = container.querySelector('.val-main-char');
+        if (mainCharEl) mainCharEl.textContent = stats.mainChar || 'Unknown';
+        const rankEl = container.querySelector('.val-rank');
+        if (rankEl) rankEl.textContent = stats.danRank || '-';
+        const ratingEl = container.querySelector('.val-rating');
+        if (ratingEl) ratingEl.textContent = stats.ratingMu ? `μ ${stats.ratingMu}` : '-';
+        const powerEl = container.querySelector('.val-power');
+        if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
+
+        drawRadarChart(`radar_${key}`, stats);
+      }
+      showToast(`✨ ewgf 公式データを最新に更新しました！`);
+    }
+
+    async function refreshAllWavuStats() {
+      showToast('⚡ 全賞金首の ewgf 最新データを順次取得中...');
+      const cards = document.querySelectorAll('.poster-card');
+      for (const card of cards) {
+        const refreshBtn = card.querySelector('.card-refresh-btn');
+        if (refreshBtn) refreshBtn.click();
+      }
     }
 
     function renderPosters(data) {
@@ -1542,6 +2066,8 @@
         if (currentTheme === 'modern') defaultSubtitle = 'Member';
         if (currentTheme === 'japanese') defaultSubtitle = '手配者';
 
+        const cachedStats = getLocalStats(cleanGameId);
+
         card.innerHTML = `
           <div class="poster-pin"></div>
           <div class="poster-header-text">${headerText}</div>
@@ -1553,6 +2079,36 @@
 
           <div class="poster-name">${escapeHtml(m.name)}</div>
           <div class="poster-nickname">${escapeHtml(m.subtitle || defaultSubtitle)}</div>
+
+          <!-- ewgf.gg / Wavu 公式データ直接連動 (レーダーチャート全撤廃・純粋本物データ表示) -->
+          <div class="card-stats-container" id="stats_box_${key}">
+            <div class="last-seen-badge-wrapper">
+              ${getLastSeenBadgeHtml(cachedStats ? cachedStats.lastSeenTimestamp : null)}
+            </div>
+
+            <div class="stats-info-grid">
+              <div class="stats-info-item">
+                <span class="stats-info-label">Main:</span>
+                <span class="stats-info-val val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}</span>
+              </div>
+              <div class="stats-info-item">
+                <span class="stats-info-label">Rank:</span>
+                <span class="stats-info-val val-rank" style="font-size:0.65rem;">${cachedStats ? escapeHtml(cachedStats.danRank || '-') : '-'}</span>
+              </div>
+              <div class="stats-info-item">
+                <span class="stats-info-label">Rating:</span>
+                <span class="stats-info-val val-rating" style="color:var(--gold-accent); font-weight:800; font-size:0.88rem;">${cachedStats && cachedStats.ratingMu !== null ? 'μ ' + cachedStats.ratingMu : 'データ取得中'}</span>
+              </div>
+              <div class="stats-info-item">
+                <span class="stats-info-label">Power:</span>
+                <span class="stats-info-val val-power">${cachedStats && cachedStats.tekkenPower ? cachedStats.tekkenPower.toLocaleString() : '-'}</span>
+              </div>
+            </div>
+
+            <button class="card-refresh-btn" onclick="refreshCardStats('${escapeHtml(cleanGameId)}', '${key}')">
+              ⚡ 公式データ更新
+            </button>
+          </div>
 
           <div class="id-box" onclick="copyId('${escapeHtml(cleanGameId)}', '${escapeHtml(m.name)}')">
             <div>
@@ -1576,6 +2132,26 @@
         `;
 
         grid.appendChild(card);
+
+        // バックグラウンドでのデータ非同期フェッチ
+        setTimeout(async () => {
+          let stats = getLocalStats(cleanGameId);
+          if (!stats) {
+            stats = await fetchEwgfStats(cleanGameId);
+            const container = document.getElementById(`stats_box_${key}`);
+            if (container) {
+              container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
+              const mainCharEl = container.querySelector('.val-main-char');
+              if (mainCharEl) mainCharEl.textContent = stats.mainChar || 'Unknown';
+              const rankEl = container.querySelector('.val-rank');
+              if (rankEl) rankEl.textContent = stats.danRank || '-';
+              const ratingEl = container.querySelector('.val-rating');
+              if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu}` : 'データ取得中';
+              const powerEl = container.querySelector('.val-power');
+              if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
+            }
+          }
+        }, 100);
       });
     }
 
@@ -1614,6 +2190,19 @@
       document.getElementById('inputXUrl').value = '';
       document.getElementById('inputPhotoFile').value = '';
       setPhotoPreview('');
+      
+      // スタッツ初期値
+      document.getElementById('inputAttack').value = 75;
+      document.getElementById('valAttack').textContent = 75;
+      document.getElementById('inputDefense').value = 70;
+      document.getElementById('valDefense').textContent = 70;
+      document.getElementById('inputTech').value = 80;
+      document.getElementById('valTech').textContent = 80;
+      document.getElementById('inputSpirit').value = 85;
+      document.getElementById('valSpirit').textContent = 85;
+      document.getElementById('inputAppeal').value = 75;
+      document.getElementById('valAppeal').textContent = 75;
+
       selectedColor = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
       renderColorPresets();
       openModal('editModal');
@@ -1629,13 +2218,30 @@
         if (currentTheme === 'japanese') btnLabel = '手配カードを更新';
         document.getElementById('btnSaveSubmit').textContent = btnLabel;
 
+        const cleanId = cleanTekkenId(m.gameId);
+
         document.getElementById('editKey').value = key;
         document.getElementById('inputName').value = m.name || '';
-        document.getElementById('inputId').value = cleanTekkenId(m.gameId);
+        document.getElementById('inputId').value = cleanId;
         document.getElementById('inputSubtitle').value = m.subtitle || '';
         document.getElementById('inputXUrl').value = m.xUrl !== undefined ? m.xUrl : '';
         document.getElementById('inputPhotoFile').value = '';
         setPhotoPreview(m.photoData || '');
+
+        // キャッシュされたスタッツまたはデフォルト値
+        const cached = getLocalStats(cleanId);
+        const cs = (cached && cached.customStats) ? cached.customStats : { attack: 75, defense: 70, technique: 80, spirit: 85, appeal: 75 };
+        document.getElementById('inputAttack').value = cs.attack || 75;
+        document.getElementById('valAttack').textContent = cs.attack || 75;
+        document.getElementById('inputDefense').value = cs.defense || 70;
+        document.getElementById('valDefense').textContent = cs.defense || 70;
+        document.getElementById('inputTech').value = cs.technique || 80;
+        document.getElementById('valTech').textContent = cs.technique || 80;
+        document.getElementById('inputSpirit').value = cs.spirit || 85;
+        document.getElementById('valSpirit').textContent = cs.spirit || 85;
+        document.getElementById('inputAppeal').value = cs.appeal || 75;
+        document.getElementById('valAppeal').textContent = cs.appeal || 75;
+
         selectedColor = m.color || PRESET_COLORS[0];
         renderColorPresets();
         openModal('editModal');
@@ -1672,6 +2278,19 @@
 
       if (!name || !gameId) return;
 
+      // 手動スタッツ読み取り
+      const customStats = {
+        attack: parseInt(document.getElementById('inputAttack').value, 10),
+        defense: parseInt(document.getElementById('inputDefense').value, 10),
+        technique: parseInt(document.getElementById('inputTech').value, 10),
+        spirit: parseInt(document.getElementById('inputSpirit').value, 10),
+        appeal: parseInt(document.getElementById('inputAppeal').value, 10)
+      };
+
+      const existingStats = getLocalStats(gameId) || {};
+      existingStats.customStats = customStats;
+      setLocalStats(gameId, existingStats);
+
       const data = {
         name,
         gameId,
@@ -1685,7 +2304,11 @@
 
       if (key) {
         membersRef.child(key).update(data)
-          .then(() => { closeModal('editModal'); showToast(`${name} を更新しました`); });
+          .then(() => { 
+            closeModal('editModal'); 
+            showToast(`${name} を更新しました`);
+            drawRadarChart(`radar_${key}`, existingStats);
+          });
       } else {
         data.order = Date.now();
         membersRef.push(data)
