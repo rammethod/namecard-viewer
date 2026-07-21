@@ -154,7 +154,7 @@
       justify-content: space-between;
       gap: 12px;
       margin-bottom: 20px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
     }
 
     .status-badge {
@@ -168,6 +168,7 @@
       color: var(--gold-accent);
       font-size: 0.8rem;
       letter-spacing: 2px;
+      flex-shrink: 0;
     }
     .status-badge .dot {
       width: 8px; height: 8px;
@@ -180,9 +181,11 @@
       box-shadow: 0 0 8px #ef4444;
     }
 
+    /* UI Theme Selector Switch Button (位置完全固定＆統一幅) */
     .theme-switch-btn {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       padding: 6px 14px;
       background: rgba(255, 255, 255, 0.1);
@@ -193,7 +196,10 @@
       font-weight: 600;
       cursor: pointer;
       backdrop-filter: blur(8px);
-      transition: all 0.2s;
+      transition: transform 0.2s, background 0.2s;
+      flex-shrink: 0;
+      min-width: 165px;
+      text-align: center;
     }
 
     body.theme-wanted .theme-switch-btn {
@@ -520,9 +526,7 @@
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
 
-    body.theme-modern .link-btn {
-      border-radius: 8px;
-    }
+    body.theme-modern .link-btn { border-radius: 8px; }
 
     .link-btn:hover {
       opacity: 0.9;
@@ -797,10 +801,32 @@
       color: var(--gold-accent);
     }
 
-    /* Mobile Optimization */
+    /* Mobile Optimization (スマホ表示時の完全位置固定＆レイアウト安定化) */
     @media (max-width: 640px) {
-      body { padding: 16px 8px 48px; }
-      body.theme-wanted .board-container { padding: 20px 12px; border-width: 6px; }
+      body { padding: 12px 8px 48px; }
+      body.theme-wanted .board-container, body.theme-modern .board-container {
+        padding: 16px 10px;
+        border-width: 6px;
+      }
+      
+      .top-controls {
+        margin-bottom: 16px;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .status-badge {
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+      }
+
+      .theme-switch-btn {
+        min-width: 145px;
+        padding: 5px 10px;
+        font-size: 0.72rem;
+      }
+
       .saloon-title { font-size: 1.6rem; }
       .saloon-subtitle { font-size: 0.85rem; }
       .btn-add-bounty { padding: 10px 20px; font-size: 0.9rem; }
@@ -850,7 +876,7 @@
         </div>
         <!-- UI Theme Switcher Button -->
         <button class="theme-switch-btn" onclick="toggleTheme()">
-          🎨 <span id="themeToggleText">UI切替: WANTED (酒場)</span>
+          🎨 <span id="themeToggleText">UI切替: WANTED</span>
         </button>
       </div>
 
@@ -1084,11 +1110,11 @@
       const btnAdd = document.getElementById('btnAddMember');
 
       if (theme === 'wanted') {
-        toggleBtnText.textContent = 'UI切替: WANTED (酒場)';
+        toggleBtnText.textContent = 'UI切替: WANTED';
         if (statusText.textContent === 'ONLINE') statusText.textContent = 'SALOON ONLINE';
         btnAdd.innerHTML = '➕ 手配書（メンバー）を追加';
       } else {
-        toggleBtnText.textContent = 'UI切替: MODERN (ネオン)';
+        toggleBtnText.textContent = 'UI切替: MODERN';
         if (statusText.textContent === 'SALOON ONLINE') statusText.textContent = 'ONLINE';
         btnAdd.innerHTML = '➕ メンバーを追加';
       }
