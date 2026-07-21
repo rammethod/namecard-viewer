@@ -16,6 +16,10 @@
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
 
+  <!-- Cropper.js (画像トリミング・クロップ用) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+
   <style>
     /* ========== Reset & Base ========== */
     *, *::before, *::after {
@@ -395,9 +399,7 @@
       z-index: 6;
     }
 
-    .poster-card:hover .card-admin-actions {
-      opacity: 1;
-    }
+    .poster-card:hover .card-admin-actions { opacity: 1; }
 
     .admin-icon-btn {
       width: 26px;
@@ -412,33 +414,36 @@
       justify-content: center;
     }
 
-    .admin-icon-btn:hover {
-      background: var(--text-ink);
-      color: var(--parchment-bg);
+    .admin-icon-btn:hover { background: var(--text-ink); color: var(--parchment-bg); }
+    .admin-icon-btn.delete:hover { background: var(--text-red); color: #fff; }
+    .admin-icon-btn svg { width: 12px; height: 12px; }
+
+    /* Photo Upload Dropzone Area in Modal */
+    .drop-zone {
+      border: 2px dashed var(--wood-border);
+      border-radius: 6px;
+      padding: 16px;
+      text-align: center;
+      background: #140c07;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
     }
 
-    .admin-icon-btn.delete:hover {
-      background: var(--text-red);
-      color: #fff;
+    .drop-zone.dragover {
+      border-color: var(--gold-accent);
+      background: rgba(212, 175, 55, 0.1);
     }
 
-    .admin-icon-btn svg {
-      width: 12px;
-      height: 12px;
-    }
-
-    /* Modal Styling */
     .photo-upload-area {
       display: flex;
       align-items: center;
       gap: 16px;
-      margin-top: 6px;
     }
 
     .photo-preview {
-      width: 64px;
-      height: 64px;
-      border: 2px dashed var(--gold-accent);
+      width: 70px;
+      height: 70px;
+      border: 2px solid var(--gold-accent);
       border-radius: 6px;
       background: #111;
       display: flex;
@@ -460,25 +465,45 @@
 
     .file-input-btn {
       display: inline-block;
-      padding: 6px 12px;
+      padding: 6px 14px;
       background: rgba(212, 175, 55, 0.15);
       border: 1px solid var(--gold-accent);
       color: var(--gold-accent);
       border-radius: 4px;
-      font-size: 0.8rem;
+      font-size: 0.82rem;
       cursor: pointer;
     }
 
     .btn-remove-photo {
       display: inline-block;
-      margin-left: 8px;
-      padding: 6px 10px;
+      margin-top: 6px;
+      padding: 4px 10px;
       background: rgba(239, 68, 68, 0.2);
       border: 1px solid #ef4444;
       color: #fca5a5;
       border-radius: 4px;
       font-size: 0.75rem;
       cursor: pointer;
+    }
+
+    .drop-hint {
+      font-size: 0.75rem;
+      color: #a89278;
+      margin-top: 6px;
+    }
+
+    /* Cropper Modal */
+    .crop-container {
+      width: 100%;
+      max-height: 360px;
+      overflow: hidden;
+      background: #000;
+      margin-bottom: 16px;
+      border-radius: 4px;
+    }
+
+    .crop-container img {
+      max-width: 100%;
     }
 
     .color-presets {
@@ -506,7 +531,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.8);
+      background: rgba(0,0,0,0.85);
       backdrop-filter: blur(4px);
       z-index: 100;
       display: flex;
@@ -619,7 +644,7 @@
       color: var(--gold-accent);
     }
 
-    /* ========== Mobile Optimization (スマホ表示調整) ========== */
+    /* Mobile Optimization */
     @media (max-width: 640px) {
       body { padding: 16px 8px 48px; }
       .board-container { padding: 20px 12px; border-width: 6px; }
@@ -627,46 +652,34 @@
       .saloon-subtitle { font-size: 0.85rem; }
       .btn-add-bounty { padding: 10px 20px; font-size: 0.9rem; }
 
-      /* スマホでは2列配置で手配書をコンパクト・見やすく配置 */
       .poster-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 12px;
         padding: 4px 0;
       }
 
-      .poster-card {
-        padding: 14px 10px 12px;
-      }
-
+      .poster-card { padding: 14px 10px 12px; }
       .poster-pin { width: 10px; height: 10px; top: 4px; }
       .poster-header-text { font-size: 1.3rem; letter-spacing: 2px; }
       .poster-sub-header { font-size: 0.55rem; letter-spacing: 1px; margin-bottom: 8px; }
-
       .avatar-frame { height: 105px; margin-bottom: 8px; }
       .avatar-initials { font-size: 2.2rem; }
-
       .poster-name { font-size: 1rem; margin-bottom: 2px; }
       .poster-nickname { font-size: 0.72rem; margin-bottom: 8px; }
-
       .id-box { padding: 6px 8px; margin-bottom: 8px; }
       .id-label { font-size: 0.55rem; }
       .id-value { font-size: 0.72rem; letter-spacing: 0; }
       .copy-badge { font-size: 0.65rem; }
-
       .links-grid { gap: 4px; }
       .link-btn { padding: 6px 2px; font-size: 0.62rem; }
       .link-btn svg { width: 11px; height: 11px; margin-bottom: 1px; }
-
       .card-admin-actions { opacity: 1; top: 6px; right: 6px; }
       .admin-icon-btn { width: 22px; height: 22px; }
       .admin-icon-btn svg { width: 10px; height: 10px; }
     }
 
-    /* 極小画面（幅360px以下）の場合の1列フォールバック */
     @media (max-width: 360px) {
-      .poster-grid {
-        grid-template-columns: 1fr;
-      }
+      .poster-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -735,20 +748,25 @@
           <input class="form-input" type="text" id="inputXUrl" placeholder="例: https://x.com/username または @username" maxlength="200">
         </div>
 
-        <!-- Photo Upload (Canvas compressed DataURL for zero-backend sharing) -->
+        <!-- Photo Upload & Drag/Drop Area -->
         <div class="form-group">
-          <label class="form-label">手配写真（画像アップロード）</label>
-          <div class="photo-upload-area">
-            <div class="photo-preview" id="photoPreview">
-              <span>無画像</span>
+          <label class="form-label">手配写真（ドラッグ＆ドロップ対応）</label>
+          <div class="drop-zone" id="dropZone" onclick="triggerFileInput()">
+            <div class="photo-upload-area">
+              <div class="photo-preview" id="photoPreview">
+                <span>無画像</span>
+              </div>
+              <div class="photo-controls">
+                <label class="file-input-btn" onclick="event.stopPropagation()">
+                  📷 画像を選択
+                  <input type="file" id="inputPhotoFile" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                </label>
+                <div>
+                  <button class="btn-remove-photo" type="button" id="btnRemovePhoto" style="display:none;" onclick="event.stopPropagation(); removePhoto()">画像を消去</button>
+                </div>
+              </div>
             </div>
-            <div class="photo-controls">
-              <label class="file-input-btn">
-                📷 画像を選択
-                <input type="file" id="inputPhotoFile" accept="image/*" style="display:none;" onchange="handlePhotoSelect(event)">
-              </label>
-              <button class="btn-remove-photo" type="button" id="btnRemovePhoto" style="display:none;" onclick="removePhoto()">画像を消去</button>
-            </div>
+            <div class="drop-hint">PCの方はここに画像をドラッグ＆ドロップして入力できます</div>
           </div>
         </div>
 
@@ -762,6 +780,23 @@
           <button class="btn-wood btn-save" type="submit">手配書を貼り付ける</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Crop Modal (トリミング・領域選択モーダル) -->
+  <div class="modal-overlay" id="cropModal">
+    <div class="modal-wood" style="max-width: 520px;">
+      <div class="modal-title">切り抜き領域を選択</div>
+      <p style="font-size:0.8rem; color:#d1b894; text-align:center; margin-bottom: 12px;">
+        枠をドラッグ・ズームして手配書に最適な領域を決定してください
+      </p>
+      <div class="crop-container">
+        <img id="cropImage" src="" alt="Crop Source">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-wood btn-cancel" type="button" onclick="closeModal('cropModal')">キャンセル</button>
+        <button class="btn-wood btn-save" type="button" onclick="applyCrop()">領域を決定（切り抜き）</button>
+      </div>
     </div>
   </div>
 
@@ -786,7 +821,7 @@
   </div>
 
   <script>
-    // Firebase Config (既存プロジェクト `wanted-815de` と同期)
+    // Firebase Config
     const firebaseConfig = {
       apiKey:            "AIzaSyCducuGe87lyMAloGbciWd0WJZvEyFmS9k",
       authDomain:        "wanted-815de.firebaseapp.com",
@@ -809,6 +844,7 @@
     let settingsRef = null;
     let selectedColor = PRESET_COLORS[0];
     let toastTimer = null;
+    let cropper = null;
 
     // SVG Icons
     const ICON_EDIT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
@@ -849,8 +885,97 @@
           renderPosters(snapshot.val());
         });
 
+        setupDragAndDrop();
+
       } catch (e) {
         document.getElementById('loadingState').innerHTML = `<p style="color:#ef4444;">エラー: ${e.message}</p>`;
+      }
+    }
+
+    /* Setup Drag and Drop for Photo Upload */
+    function setupDragAndDrop() {
+      const dropZone = document.getElementById('dropZone');
+      ['dragenter', 'dragover'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.add('dragover');
+        }, false);
+      });
+
+      ['dragleave', 'drop'].forEach(eventName => {
+        dropZone.addEventListener(eventName, (e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          dropZone.classList.remove('dragover');
+        }, false);
+      });
+
+      dropZone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        if (files && files.length > 0) {
+          processImageFile(files[0]);
+        }
+      });
+    }
+
+    function triggerFileInput() {
+      document.getElementById('inputPhotoFile').click();
+    }
+
+    function handleFileSelect(e) {
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        processImageFile(files[0]);
+      }
+    }
+
+    /* Open Cropper Modal for cropping vertical/horizontal images */
+    function processImageFile(file) {
+      if (!file.type.startsWith('image/')) {
+        showToast('⚠️ 画像ファイルを選択してください');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const cropImage = document.getElementById('cropImage');
+        cropImage.src = e.target.result;
+        openModal('cropModal');
+
+        if (cropper) {
+          cropper.destroy();
+        }
+
+        cropper = new Cropper(cropImage, {
+          aspectRatio: 4 / 3, // 手配書のアバター枠に最適化
+          viewMode: 1,
+          autoCropArea: 0.9,
+          background: false,
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+
+    /* Apply Crop result to DataURL */
+    function applyCrop() {
+      if (!cropper) return;
+
+      const canvas = cropper.getCroppedCanvas({
+        width: 320,
+        height: 240,
+        imageSmoothingEnabled: true,
+        imageSmoothingQuality: 'high',
+      });
+
+      const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      setPhotoPreview(croppedDataUrl);
+      closeModal('cropModal');
+
+      if (cropper) {
+        cropper.destroy();
+        cropper = null;
       }
     }
 
@@ -878,38 +1003,6 @@
       document.querySelectorAll('.color-swatch').forEach(s => {
         s.classList.toggle('selected', s.style.background === color || s.style.backgroundColor === color);
       });
-    }
-
-    function handlePhotoSelect(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const img = new Image();
-        img.onload = function() {
-          const canvas = document.createElement('canvas');
-          const ctx = canvas.getContext('2d');
-          const maxDim = 320;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > maxDim) { height *= maxDim / width; width = maxDim; }
-          } else {
-            if (height > maxDim) { width *= maxDim / height; height = maxDim; }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
-          setPhotoPreview(dataUrl);
-        };
-        img.src = evt.target.result;
-      };
-      reader.readAsDataURL(file);
     }
 
     function setPhotoPreview(url) {
@@ -1068,6 +1161,10 @@
     }
     function closeModal(id) {
       document.getElementById(id).classList.remove('open');
+      if (id === 'cropModal' && cropper) {
+        cropper.destroy();
+        cropper = null;
+      }
     }
 
     function saveMember(e) {
