@@ -688,13 +688,17 @@
       grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
       gap: 6px;
       margin-top: auto;
+      width: 100%;
     }
 
+    /* ★文字位置・アイコン中央揃え完全強制 (display: flex; align-items: center; justify-content: center; text-align: center)★ */
     .link-btn {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      width: 100%;
       padding: 8px 4px;
       border-radius: 4px;
       text-decoration: none;
@@ -703,6 +707,23 @@
       color: #fff;
       transition: all 0.2s ease;
       box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      word-break: break-all;
+    }
+
+    .link-btn span {
+      display: block;
+      width: 100%;
+      text-align: center;
+      margin: 0 auto;
+      line-height: 1.1;
+    }
+
+    .link-btn svg {
+      width: 14px;
+      height: 14px;
+      margin: 0 auto 2px auto;
+      fill: currentColor;
+      display: block;
     }
 
     body.theme-modern .link-btn, body.theme-japanese .link-btn { border-radius: 8px; }
@@ -716,14 +737,7 @@
     .link-btn.ewgf-btn { background: var(--ewgf-color); }
     .link-btn.wavu-btn { background: var(--wavu-color); }
 
-    .link-btn svg {
-      width: 14px;
-      height: 14px;
-      margin-bottom: 2px;
-      fill: currentColor;
-    }
-
-    /* ★カード表のデザインに絶対被らないスマートな最下部管理バー★ */
+    /* スマートな最下部管理バー */
     .card-admin-bar {
       display: flex;
       align-items: center;
@@ -1263,7 +1277,7 @@
     const ICON_DELETE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
     const ICON_X = `<svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>`;
     const ICON_LIGHTNING = `<svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`;
-    const ICON_WAVU = `<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`;
+    const ICON_WAVU = `<svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 12l10 5 10-5"/></svg>`;
 
     function init() {
       const savedTheme = localStorage.getItem('preferred_theme');
@@ -1514,7 +1528,7 @@
         }
 
         const xBtnHtml = xUrl
-          ? `<a class="link-btn x-btn" href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">${ICON_X} SNS (X)</a>`
+          ? `<a class="link-btn x-btn" href="${escapeHtml(xUrl)}" target="_blank" rel="noopener">${ICON_X}<span>SNS (X)</span></a>`
           : '';
 
         let headerText = 'WANTED';
@@ -1550,11 +1564,11 @@
 
           <div class="links-grid">
             ${xBtnHtml}
-            <a class="link-btn ewgf-btn" href="${escapeHtml(ewgfUrl)}" target="_blank" rel="noopener">${ICON_LIGHTNING} ewgf</a>
-            <a class="link-btn wavu-btn" href="${escapeHtml(wavuUrl)}" target="_blank" rel="noopener">${ICON_WAVU} wavu</a>
+            <a class="link-btn ewgf-btn" href="${escapeHtml(ewgfUrl)}" target="_blank" rel="noopener">${ICON_LIGHTNING}<span>ewgf</span></a>
+            <a class="link-btn wavu-btn" href="${escapeHtml(wavuUrl)}" target="_blank" rel="noopener">${ICON_WAVU}<span>wavu</span></a>
           </div>
 
-          <!-- ★カードのデザインに1ミリも被らないスマートな最下部管理バー★ -->
+          <!-- スマートな最下部管理バー -->
           <div class="card-admin-bar">
             <button class="card-admin-btn" onclick="openEditModal('${key}')" title="編集">${ICON_EDIT} 編集</button>
             <button class="card-admin-btn delete-btn" onclick="openDeleteModal('${key}', '${escapeHtml(m.name)}')" title="削除">${ICON_DELETE} 削除</button>
