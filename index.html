@@ -1,16 +1,19 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="鉄拳8 メンバーネームカード＆手配書リスト">
   <title>TEKKEN 8 Member Cards</title>
-  
+
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rye&family=Cinzel:wght@700;900&family=Shippori+Mincho:wght@600;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Rye&family=Cinzel:wght@700;900&family=Shippori+Mincho:wght@600;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+    rel="stylesheet">
 
   <!-- Firebase SDK (compat) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
@@ -22,7 +25,9 @@
 
   <style>
     /* ========== Reset & Base ========== */
-    *, *::before, *::after {
+    *,
+    *::before,
+    *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
@@ -47,9 +52,9 @@
 
       font-family: 'Shippori Mincho', 'Cinzel', serif;
       background: var(--wood-dark);
-      background-image: 
+      background-image:
         radial-gradient(circle at 50% 20%, rgba(212, 175, 55, 0.08) 0%, transparent 60%),
-        repeating-linear-gradient(0deg, rgba(0,0,0,0.15), rgba(0,0,0,0.15) 2px, transparent 2px, transparent 4px),
+        repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.15), rgba(0, 0, 0, 0.15) 2px, transparent 2px, transparent 4px),
         linear-gradient(90deg, #140d08 0%, #28190e 25%, #1c1109 50%, #2a1b10 75%, #120c07 100%);
       color: var(--text-ink);
       min-height: 100vh;
@@ -70,7 +75,7 @@
 
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
       background: var(--bg-primary);
-      background-image: 
+      background-image:
         radial-gradient(ellipse at top left, rgba(129, 140, 248, 0.12) 0%, transparent 50%),
         radial-gradient(ellipse at bottom right, rgba(192, 132, 252, 0.1) 0%, transparent 50%);
       color: var(--text-primary);
@@ -88,7 +93,7 @@
 
       font-family: 'Shippori Mincho', serif;
       background: #e0e7ff;
-      background-image: 
+      background-image:
         radial-gradient(circle at 50% 10%, rgba(224, 242, 254, 0.9) 0%, transparent 60%),
         radial-gradient(circle at 80% 80%, rgba(199, 210, 254, 0.6) 0%, transparent 50%),
         linear-gradient(135deg, #e0f2fe 0%, #dbeafe 50%, #e0e7ff 100%);
@@ -103,6 +108,7 @@
       border: 1px solid rgba(255, 255, 255, 0.15);
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.15);
     }
+
     body.theme-modern .link-btn.x-btn:hover {
       background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.25);
@@ -113,6 +119,7 @@
       border: 1px solid rgba(147, 197, 253, 0.35);
       box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
     }
+
     body.theme-modern .link-btn.ewgf-btn:hover {
       background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
       box-shadow: 0 6px 20px rgba(59, 130, 246, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4);
@@ -123,6 +130,7 @@
       border: 1px solid rgba(253, 164, 175, 0.35);
       box-shadow: 0 4px 14px rgba(225, 29, 72, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.25);
     }
+
     body.theme-modern .link-btn.wavu-btn:hover {
       background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
       box-shadow: 0 6px 20px rgba(244, 63, 94, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.4);
@@ -132,15 +140,17 @@
     body.theme-japanese .link-btn.x-btn {
       background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
       border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       color: #ffffff;
     }
+
     body.theme-japanese .link-btn.ewgf-btn {
       background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
       border: 1px solid rgba(186, 230, 253, 0.4);
       box-shadow: 0 4px 10px rgba(2, 132, 199, 0.35);
       color: #ffffff;
     }
+
     body.theme-japanese .link-btn.wavu-btn {
       background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
       border: 1px solid rgba(221, 214, 254, 0.4);
@@ -159,7 +169,7 @@
       background: var(--wood-mid);
       border: 12px solid var(--wood-border);
       border-radius: 8px;
-      box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 20px 50px rgba(0,0,0,0.9);
+      box-shadow: inset 0 0 40px rgba(0, 0, 0, 0.8), 0 20px 50px rgba(0, 0, 0, 0.9);
       padding: 40px 30px;
       position: relative;
     }
@@ -179,17 +189,26 @@
       position: relative;
     }
 
-    body.theme-wanted .board-container::before, body.theme-wanted .board-container::after {
+    body.theme-wanted .board-container::before,
+    body.theme-wanted .board-container::after {
       content: '';
       position: absolute;
       width: 16px;
       height: 16px;
       background: radial-gradient(circle, #8a8a8a 20%, #333 80%);
       border-radius: 50%;
-      box-shadow: inset 0 1px 2px rgba(255,255,255,0.4), 0 2px 4px rgba(0,0,0,0.8);
+      box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.4), 0 2px 4px rgba(0, 0, 0, 0.8);
     }
-    body.theme-wanted .board-container::before { top: 10px; left: 10px; }
-    body.theme-wanted .board-container::after { top: 10px; right: 10px; }
+
+    body.theme-wanted .board-container::before {
+      top: 10px;
+      left: 10px;
+    }
+
+    body.theme-wanted .board-container::after {
+      top: 10px;
+      right: 10px;
+    }
 
     .saloon-header {
       text-align: center;
@@ -209,7 +228,7 @@
       align-items: center;
       gap: 8px;
       padding: 6px 16px;
-      background: rgba(0,0,0,0.6);
+      background: rgba(0, 0, 0, 0.6);
       border: 1px solid var(--gold-accent);
       border-radius: 20px;
       color: var(--gold-accent);
@@ -225,11 +244,13 @@
     }
 
     .status-badge .dot {
-      width: 8px; height: 8px;
+      width: 8px;
+      height: 8px;
       background: #22c55e;
       border-radius: 50%;
       box-shadow: 0 0 8px #22c55e;
     }
+
     .status-badge .dot.offline {
       background: #ef4444;
       box-shadow: 0 0 8px #ef4444;
@@ -302,7 +323,7 @@
     body.theme-wanted .saloon-title-wrap {
       background: linear-gradient(180deg, #4a150b 0%, #2b0b05 100%);
       border: 3px double var(--gold-accent);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.6);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6);
     }
 
     body.theme-modern .saloon-title-wrap {
@@ -331,7 +352,7 @@
     body.theme-wanted .saloon-title {
       font-family: 'Rye', cursive;
       color: var(--gold-accent);
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.9);
     }
 
     body.theme-modern .saloon-title {
@@ -369,9 +390,18 @@
       letter-spacing: 1px;
     }
 
-    body.theme-wanted .saloon-subtitle { color: #d1b894; }
-    body.theme-modern .saloon-subtitle { color: var(--text-secondary); }
-    body.theme-japanese .saloon-subtitle { color: #4338ca; font-weight: 600; }
+    body.theme-wanted .saloon-subtitle {
+      color: #d1b894;
+    }
+
+    body.theme-modern .saloon-subtitle {
+      color: var(--text-secondary);
+    }
+
+    body.theme-japanese .saloon-subtitle {
+      color: #4338ca;
+      font-weight: 600;
+    }
 
     .btn-add-bounty {
       margin-top: 24px;
@@ -385,7 +415,7 @@
       font-size: 1rem;
       letter-spacing: 1px;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
       transition: all 0.2s ease;
     }
 
@@ -429,18 +459,19 @@
     /* Theme 1: Wanted Card */
     body.theme-wanted .poster-card {
       background: var(--parchment-bg);
-      background-image: 
-        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.2) 0%, transparent 80%),
-        linear-gradient(135deg, rgba(140,106,70,0.15) 0%, transparent 100%);
+      background-image:
+        radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, transparent 80%),
+        linear-gradient(135deg, rgba(140, 106, 70, 0.15) 0%, transparent 100%);
       border: 2px solid var(--parchment-border);
       border-radius: 2px;
       padding: 24px 20px 16px;
-      box-shadow: 0 12px 28px rgba(0,0,0,0.7);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.7);
       transform: rotate(calc(var(--rand-deg, 0) * 1deg));
     }
+
     body.theme-wanted .poster-card:hover {
       transform: scale(1.03) rotate(0deg);
-      box-shadow: 0 16px 36px rgba(0,0,0,0.85);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.85);
       z-index: 10;
     }
 
@@ -453,6 +484,7 @@
       backdrop-filter: blur(16px);
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
     }
+
     body.theme-modern .poster-card:hover {
       background: rgba(255, 255, 255, 0.07);
       border-color: rgba(129, 140, 248, 0.4);
@@ -469,6 +501,7 @@
       box-shadow: 0 12px 32px rgba(49, 46, 129, 0.35);
       color: #ffffff;
     }
+
     body.theme-japanese .poster-card:hover {
       transform: translateY(-4px);
       border-color: #ffffff;
@@ -485,11 +518,14 @@
       height: 14px;
       background: radial-gradient(circle at 35% 35%, #e63946, #780000);
       border-radius: 50%;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.6);
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.6);
       z-index: 5;
     }
 
-    body.theme-modern .poster-pin { display: none; }
+    body.theme-modern .poster-pin {
+      display: none;
+    }
+
     body.theme-japanese .poster-pin {
       top: 8px;
       width: 22px;
@@ -500,8 +536,9 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
     }
+
     body.theme-japanese .poster-pin::after {
       content: '✦';
       color: #fff;
@@ -526,10 +563,12 @@
       font-weight: 800;
       color: #ffffff;
       letter-spacing: 6px;
-      text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
     }
 
-    body.theme-modern .poster-header-text { display: none; }
+    body.theme-modern .poster-header-text {
+      display: none;
+    }
 
     .poster-sub-header {
       text-align: center;
@@ -551,11 +590,13 @@
       font-family: 'Shippori Mincho', serif;
       color: #c7d2fe;
       letter-spacing: 4px;
-      border-top: 1px solid rgba(255,255,255,0.3);
-      border-bottom: 1px solid rgba(255,255,255,0.3);
+      border-top: 1px solid rgba(255, 255, 255, 0.3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
     }
 
-    body.theme-modern .poster-sub-header { display: none; }
+    body.theme-modern .poster-sub-header {
+      display: none;
+    }
 
     .avatar-frame {
       width: 100%;
@@ -572,19 +613,19 @@
 
     body.theme-wanted .avatar-frame {
       border: 3px double var(--text-ink);
-      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
     }
 
     body.theme-japanese .avatar-frame {
       border: 1px solid rgba(255, 255, 255, 0.3);
       border-radius: 12px;
-      box-shadow: inset 0 0 12px rgba(0,0,0,0.5);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.5);
     }
 
     body.theme-modern .avatar-frame {
       border-radius: 12px;
       height: 150px;
-      border: 1px solid rgba(255,255,255,0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     .avatar-frame img {
@@ -593,13 +634,15 @@
       object-fit: cover;
     }
 
-    body.theme-wanted .avatar-frame img { filter: sepia(0.15) contrast(1.05); }
+    body.theme-wanted .avatar-frame img {
+      filter: sepia(0.15) contrast(1.05);
+    }
 
     .avatar-initials {
       font-size: 3.5rem;
       font-weight: 900;
       color: #fff;
-      text-shadow: 2px 2px 6px rgba(0,0,0,0.7);
+      text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.7);
     }
 
     .poster-name {
@@ -610,9 +653,21 @@
       line-height: 1.2;
     }
 
-    body.theme-wanted .poster-name { font-family: 'Shippori Mincho', serif; color: var(--text-ink); }
-    body.theme-japanese .poster-name { font-family: 'Shippori Mincho', serif; color: #ffffff; font-weight: 800; }
-    body.theme-modern .poster-name { font-family: 'Inter', sans-serif; color: #fff; }
+    body.theme-wanted .poster-name {
+      font-family: 'Shippori Mincho', serif;
+      color: var(--text-ink);
+    }
+
+    body.theme-japanese .poster-name {
+      font-family: 'Shippori Mincho', serif;
+      color: #ffffff;
+      font-weight: 800;
+    }
+
+    body.theme-modern .poster-name {
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+    }
 
     .poster-nickname {
       text-align: center;
@@ -631,10 +686,12 @@
       text-align: center;
       position: relative;
     }
+
     body.theme-modern .card-stats-container {
       background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.12);
     }
+
     body.theme-japanese .card-stats-container {
       background: rgba(255, 255, 255, 0.65);
       border: 1px solid rgba(99, 102, 241, 0.25);
@@ -652,28 +709,51 @@
       margin-bottom: 6px;
       letter-spacing: 0.3px;
     }
+
     .last-seen-badge.active {
       background: rgba(220, 38, 38, 0.15);
       color: #991b1b;
       border: 1px solid #ef4444;
     }
+
     .last-seen-badge.recent {
       background: rgba(217, 119, 6, 0.15);
       color: #92400e;
       border: 1px solid #f59e0b;
     }
+
     .last-seen-badge.inactive {
       background: rgba(75, 85, 99, 0.15);
       color: #374151;
       border: 1px solid #9ca3af;
     }
-    body.theme-modern .last-seen-badge.active { color: #f87171; border-color: rgba(239, 68, 68, 0.5); }
-    body.theme-modern .last-seen-badge.recent { color: #fbbf24; border-color: rgba(245, 158, 11, 0.5); }
-    body.theme-modern .last-seen-badge.inactive { color: #9ca3af; border-color: rgba(156, 163, 175, 0.5); }
 
-    body.theme-japanese .last-seen-badge.active { color: #991b1b; }
-    body.theme-japanese .last-seen-badge.recent { color: #92400e; }
-    body.theme-japanese .last-seen-badge.inactive { color: #374151; }
+    body.theme-modern .last-seen-badge.active {
+      color: #f87171;
+      border-color: rgba(239, 68, 68, 0.5);
+    }
+
+    body.theme-modern .last-seen-badge.recent {
+      color: #fbbf24;
+      border-color: rgba(245, 158, 11, 0.5);
+    }
+
+    body.theme-modern .last-seen-badge.inactive {
+      color: #9ca3af;
+      border-color: rgba(156, 163, 175, 0.5);
+    }
+
+    body.theme-japanese .last-seen-badge.active {
+      color: #991b1b;
+    }
+
+    body.theme-japanese .last-seen-badge.recent {
+      color: #92400e;
+    }
+
+    body.theme-japanese .last-seen-badge.inactive {
+      color: #374151;
+    }
 
     .radar-canvas-wrapper {
       position: relative;
@@ -684,6 +764,7 @@
       align-items: center;
       margin: 4px 0;
     }
+
     .radar-canvas {
       width: 170px;
       height: 135px;
@@ -696,19 +777,46 @@
       font-size: 0.7rem;
       margin-top: 6px;
       padding-top: 4px;
-      border-top: 1px dotted rgba(0,0,0,0.15);
+      border-top: 1px dotted rgba(0, 0, 0, 0.15);
       font-weight: 600;
     }
-    body.theme-modern .stats-info-grid { border-top-color: rgba(255,255,255,0.1); color: #cbd5e1; }
-    body.theme-japanese .stats-info-grid { border-top-color: rgba(99, 102, 241, 0.2); color: #312e81; }
+
+    body.theme-modern .stats-info-grid {
+      border-top-color: rgba(255, 255, 255, 0.1);
+      color: #cbd5e1;
+    }
+
+    body.theme-japanese .stats-info-grid {
+      border-top-color: rgba(99, 102, 241, 0.2);
+      color: #312e81;
+    }
 
     .stats-info-item {
       display: flex;
       justify-content: space-between;
       padding: 1px 4px;
     }
-    .stats-info-label { opacity: 0.75; }
-    .stats-info-val { font-weight: 700; }
+
+    .stats-info-label {
+      opacity: 0.75;
+    }
+
+    .stats-info-val {
+      font-weight: 700;
+    }
+
+    .val-rating {
+      color: var(--text-red);
+      font-weight: 700;
+    }
+
+    body.theme-modern .val-rating {
+      color: #f43f5e;
+    }
+
+    body.theme-japanese .val-rating {
+      color: #4338ca;
+    }
 
     .card-refresh-btn {
       background: transparent;
@@ -724,15 +832,33 @@
       align-items: center;
       gap: 4px;
     }
-    body.theme-modern .card-refresh-btn { color: #e2e8f0; border-color: rgba(255,255,255,0.25); }
-    body.theme-japanese .card-refresh-btn { color: #312e81; border-color: #6366f1; }
+
+    body.theme-modern .card-refresh-btn {
+      color: #e2e8f0;
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    body.theme-japanese .card-refresh-btn {
+      color: #312e81;
+      border-color: #6366f1;
+    }
+
     .card-refresh-btn:hover {
       background: rgba(212, 175, 55, 0.2);
     }
 
-    body.theme-wanted .poster-nickname { color: #5c3a21; }
-    body.theme-japanese .poster-nickname { color: #c7d2fe; font-style: normal; }
-    body.theme-modern .poster-nickname { color: var(--text-secondary); }
+    body.theme-wanted .poster-nickname {
+      color: #5c3a21;
+    }
+
+    body.theme-japanese .poster-nickname {
+      color: #c7d2fe;
+      font-style: normal;
+    }
+
+    body.theme-modern .poster-nickname {
+      color: var(--text-secondary);
+    }
 
     .id-box {
       border-radius: 4px;
@@ -746,7 +872,7 @@
     }
 
     body.theme-wanted .id-box {
-      background: rgba(0,0,0,0.06);
+      background: rgba(0, 0, 0, 0.06);
       border: 1px dashed var(--parchment-border);
     }
 
@@ -757,8 +883,8 @@
     }
 
     body.theme-modern .id-box {
-      background: rgba(0,0,0,0.3);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 8px;
     }
 
@@ -768,9 +894,17 @@
       display: block;
     }
 
-    body.theme-wanted .id-label { color: #6b4c33; }
-    body.theme-japanese .id-label { color: #c7d2fe; }
-    body.theme-modern .id-label { color: var(--text-secondary); }
+    body.theme-wanted .id-label {
+      color: #6b4c33;
+    }
+
+    body.theme-japanese .id-label {
+      color: #c7d2fe;
+    }
+
+    body.theme-modern .id-label {
+      color: var(--text-secondary);
+    }
 
     .id-value {
       font-family: 'JetBrains Mono', monospace;
@@ -779,18 +913,34 @@
       letter-spacing: 1px;
     }
 
-    body.theme-wanted .id-value { color: var(--text-red); }
-    body.theme-japanese .id-value { color: #a5f3fc; }
-    body.theme-modern .id-value { color: #6ee7b7; }
+    body.theme-wanted .id-value {
+      color: var(--text-red);
+    }
+
+    body.theme-japanese .id-value {
+      color: #a5f3fc;
+    }
+
+    body.theme-modern .id-value {
+      color: #6ee7b7;
+    }
 
     .copy-badge {
       font-size: 0.75rem;
       font-weight: 600;
     }
 
-    body.theme-wanted .copy-badge { color: #6b4c33; }
-    body.theme-japanese .copy-badge { color: #c7d2fe; }
-    body.theme-modern .copy-badge { color: var(--text-secondary); }
+    body.theme-wanted .copy-badge {
+      color: #6b4c33;
+    }
+
+    body.theme-japanese .copy-badge {
+      color: #c7d2fe;
+    }
+
+    body.theme-modern .copy-badge {
+      color: var(--text-secondary);
+    }
 
     .links-grid {
       display: grid;
@@ -815,7 +965,7 @@
       font-weight: 700;
       color: #fff;
       transition: all 0.2s ease;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
       word-break: break-all;
     }
 
@@ -835,16 +985,27 @@
       display: block;
     }
 
-    body.theme-modern .link-btn, body.theme-japanese .link-btn { border-radius: 8px; }
+    body.theme-modern .link-btn,
+    body.theme-japanese .link-btn {
+      border-radius: 8px;
+    }
 
     .link-btn:hover {
       opacity: 0.9;
       transform: translateY(-1px);
     }
 
-    .link-btn.x-btn { background: var(--x-color); }
-    .link-btn.ewgf-btn { background: var(--ewgf-color); }
-    .link-btn.wavu-btn { background: var(--wavu-color); }
+    .link-btn.x-btn {
+      background: var(--x-color);
+    }
+
+    .link-btn.ewgf-btn {
+      background: var(--ewgf-color);
+    }
+
+    .link-btn.wavu-btn {
+      background: var(--wavu-color);
+    }
 
     /* スマートな最下部管理バー */
     .card-admin-bar {
@@ -854,11 +1015,16 @@
       gap: 8px;
       margin-top: 10px;
       padding-top: 8px;
-      border-top: 1px dashed rgba(0,0,0,0.12);
+      border-top: 1px dashed rgba(0, 0, 0, 0.12);
     }
 
-    body.theme-modern .card-admin-bar { border-top-color: rgba(255,255,255,0.08); }
-    body.theme-japanese .card-admin-bar { border-top-color: rgba(255,255,255,0.15); }
+    body.theme-modern .card-admin-bar {
+      border-top-color: rgba(255, 255, 255, 0.08);
+    }
+
+    body.theme-japanese .card-admin-bar {
+      border-top-color: rgba(255, 255, 255, 0.15);
+    }
 
     .card-admin-btn {
       display: inline-flex;
@@ -866,8 +1032,8 @@
       gap: 4px;
       padding: 3px 10px;
       border-radius: 4px;
-      border: 1px solid rgba(0,0,0,0.15);
-      background: rgba(255,255,255,0.6);
+      border: 1px solid rgba(0, 0, 0, 0.15);
+      background: rgba(255, 255, 255, 0.6);
       font-size: 0.72rem;
       font-weight: 600;
       color: #2b1a0e;
@@ -876,28 +1042,57 @@
     }
 
     body.theme-modern .card-admin-btn {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(255,255,255,0.15);
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
       color: #e8e8ed;
     }
 
     body.theme-japanese .card-admin-btn {
-      background: rgba(255,255,255,0.15);
-      border-color: rgba(255,255,255,0.3);
+      background: rgba(255, 255, 255, 0.15);
+      border-color: rgba(255, 255, 255, 0.3);
       color: #ffffff;
     }
 
-    .card-admin-btn:hover { background: #fff; color: #000; }
-    body.theme-modern .card-admin-btn:hover { background: rgba(255,255,255,0.25); color: #fff; }
-    body.theme-japanese .card-admin-btn:hover { background: rgba(255,255,255,0.35); color: #fff; }
+    .card-admin-btn:hover {
+      background: #fff;
+      color: #000;
+    }
 
-    .card-admin-btn.delete-btn { color: #b91c1c; border-color: rgba(185,28,28,0.3); }
-    body.theme-modern .card-admin-btn.delete-btn { color: #fca5a5; border-color: rgba(239,68,68,0.3); }
-    body.theme-japanese .card-admin-btn.delete-btn { color: #fca5a5; border-color: rgba(254,202,202,0.4); }
+    body.theme-modern .card-admin-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      color: #fff;
+    }
 
-    .card-admin-btn.delete-btn:hover { background: #ef4444; color: #fff; border-color: #ef4444; }
+    body.theme-japanese .card-admin-btn:hover {
+      background: rgba(255, 255, 255, 0.35);
+      color: #fff;
+    }
 
-    .card-admin-btn svg { width: 11px; height: 11px; }
+    .card-admin-btn.delete-btn {
+      color: #b91c1c;
+      border-color: rgba(185, 28, 28, 0.3);
+    }
+
+    body.theme-modern .card-admin-btn.delete-btn {
+      color: #fca5a5;
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    body.theme-japanese .card-admin-btn.delete-btn {
+      color: #fca5a5;
+      border-color: rgba(254, 202, 202, 0.4);
+    }
+
+    .card-admin-btn.delete-btn:hover {
+      background: #ef4444;
+      color: #fff;
+      border-color: #ef4444;
+    }
+
+    .card-admin-btn svg {
+      width: 11px;
+      height: 11px;
+    }
 
     /* Modals */
     .drop-zone {
@@ -905,7 +1100,7 @@
       border-radius: 6px;
       padding: 16px;
       text-align: center;
-      background: rgba(0,0,0,0.4);
+      background: rgba(0, 0, 0, 0.4);
       cursor: pointer;
       transition: border-color 0.2s, background 0.2s;
     }
@@ -942,7 +1137,9 @@
       object-fit: cover;
     }
 
-    .photo-controls { flex: 1; }
+    .photo-controls {
+      flex: 1;
+    }
 
     .file-input-btn {
       display: inline-block;
@@ -990,7 +1187,9 @@
       border-radius: 4px;
     }
 
-    .crop-container img { max-width: 100%; }
+    .crop-container img {
+      max-width: 100%;
+    }
 
     .color-presets {
       display: flex;
@@ -1008,7 +1207,10 @@
       transition: transform 0.15s, border-color 0.15s;
     }
 
-    .color-swatch:hover { transform: scale(1.15); }
+    .color-swatch:hover {
+      transform: scale(1.15);
+    }
+
     .color-swatch.selected {
       border-color: var(--gold-accent);
       box-shadow: 0 0 0 2px #fff;
@@ -1017,7 +1219,7 @@
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.85);
+      background: rgba(0, 0, 0, 0.85);
       backdrop-filter: blur(4px);
       z-index: 100;
       display: flex;
@@ -1041,7 +1243,7 @@
       padding: 28px;
       width: 100%;
       max-width: 480px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.9);
       color: #edd9b4;
       max-height: 90vh;
       overflow-y: auto;
@@ -1055,7 +1257,9 @@
       letter-spacing: 2px;
     }
 
-    .form-group { margin-bottom: 16px; }
+    .form-group {
+      margin-bottom: 16px;
+    }
 
     .form-label {
       display: block;
@@ -1077,7 +1281,9 @@
       outline: none;
     }
 
-    .form-input:focus { border-color: var(--gold-accent); }
+    .form-input:focus {
+      border-color: var(--gold-accent);
+    }
 
     .modal-actions {
       display: flex;
@@ -1094,9 +1300,21 @@
       cursor: pointer;
     }
 
-    .btn-cancel { background: transparent; color: #edd9b4; }
-    .btn-save { background: var(--gold-accent); color: #2b1a0e; }
-    .btn-danger { background: var(--text-red); color: #fff; border-color: var(--text-red); }
+    .btn-cancel {
+      background: transparent;
+      color: #edd9b4;
+    }
+
+    .btn-save {
+      background: var(--gold-accent);
+      color: #2b1a0e;
+    }
+
+    .btn-danger {
+      background: var(--text-red);
+      color: #fff;
+      border-color: var(--text-red);
+    }
 
     .toast {
       position: fixed;
@@ -1109,18 +1327,20 @@
       padding: 12px 24px;
       border-radius: 4px;
       font-size: 0.95rem;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s ease;
       z-index: 200;
     }
+
     .toast.show {
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
 
-    .loading-state, .empty-state {
+    .loading-state,
+    .empty-state {
       text-align: center;
       padding: 60px 20px;
       color: var(--gold-accent);
@@ -1128,12 +1348,17 @@
 
     /* Mobile Optimization */
     @media (max-width: 640px) {
-      body { padding: 12px 6px 48px; }
-      body.theme-wanted .board-container, body.theme-modern .board-container, body.theme-japanese .board-container {
+      body {
+        padding: 12px 6px 48px;
+      }
+
+      body.theme-wanted .board-container,
+      body.theme-modern .board-container,
+      body.theme-japanese .board-container {
         padding: 16px 8px;
         border-width: 6px;
       }
-      
+
       .top-controls {
         flex-direction: column;
         align-items: stretch;
@@ -1141,7 +1366,7 @@
         margin-bottom: 16px;
       }
 
-      .top-controls > div {
+      .top-controls>div {
         justify-content: space-between;
         width: 100%;
       }
@@ -1163,9 +1388,21 @@
         justify-content: center;
       }
 
-      .saloon-title { font-size: 1.5rem; letter-spacing: 1px; }
-      .saloon-subtitle { font-size: 0.8rem; }
-      .btn-add-bounty { padding: 10px 16px; font-size: 0.85rem; width: 100%; justify-content: center; }
+      .saloon-title {
+        font-size: 1.5rem;
+        letter-spacing: 1px;
+      }
+
+      .saloon-subtitle {
+        font-size: 0.8rem;
+      }
+
+      .btn-add-bounty {
+        padding: 10px 16px;
+        font-size: 0.85rem;
+        width: 100%;
+        justify-content: center;
+      }
 
       .poster-grid {
         grid-template-columns: repeat(2, 1fr);
@@ -1173,16 +1410,51 @@
         padding: 2px 0;
       }
 
-      body.theme-wanted .poster-card, body.theme-japanese .poster-card { padding: 12px 8px 10px; }
-      body.theme-modern .poster-card { padding: 10px 8px; border-radius: 12px; }
+      body.theme-wanted .poster-card,
+      body.theme-japanese .poster-card {
+        padding: 12px 8px 10px;
+      }
 
-      .poster-pin { width: 10px; height: 10px; top: 4px; }
-      .poster-header-text { font-size: 1.2rem; letter-spacing: 1px; }
-      .poster-sub-header { font-size: 0.5rem; letter-spacing: 1px; margin-bottom: 6px; }
-      .avatar-frame { height: 95px; margin-bottom: 6px; }
-      .avatar-initials { font-size: 2rem; }
-      .poster-name { font-size: 0.95rem; margin-bottom: 2px; }
-      .poster-nickname { font-size: 0.68rem; margin-bottom: 6px; }
+      body.theme-modern .poster-card {
+        padding: 10px 8px;
+        border-radius: 12px;
+      }
+
+      .poster-pin {
+        width: 10px;
+        height: 10px;
+        top: 4px;
+      }
+
+      .poster-header-text {
+        font-size: 1.2rem;
+        letter-spacing: 1px;
+      }
+
+      .poster-sub-header {
+        font-size: 0.5rem;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+      }
+
+      .avatar-frame {
+        height: 95px;
+        margin-bottom: 6px;
+      }
+
+      .avatar-initials {
+        font-size: 2rem;
+      }
+
+      .poster-name {
+        font-size: 0.95rem;
+        margin-bottom: 2px;
+      }
+
+      .poster-nickname {
+        font-size: 0.68rem;
+        margin-bottom: 6px;
+      }
 
       /* モバイルでのカード内ステータスボックス最適化 */
       .card-stats-container {
@@ -1200,7 +1472,8 @@
       }
 
       .last-seen-badge span {
-        display: inline-block !important; /* スマホでも詳細日時(YYYY/MM/DD HH:mm)を表示 */
+        display: inline-block !important;
+        /* スマホでも詳細日時(YYYY/MM/DD HH:mm)を表示 */
         font-size: 0.52rem !important;
         opacity: 0.85;
         margin-left: 2px;
@@ -1225,13 +1498,38 @@
         justify-content: center;
       }
 
-      .id-box { padding: 5px 6px; margin-bottom: 6px; }
-      .id-label { font-size: 0.5rem; }
-      .id-value { font-size: 0.68rem; letter-spacing: 0; }
-      .copy-badge { font-size: 0.6rem; }
-      .links-grid { gap: 3px; }
-      .link-btn { padding: 5px 2px; font-size: 0.6rem; }
-      .link-btn svg { width: 10px; height: 10px; margin-bottom: 1px; }
+      .id-box {
+        padding: 5px 6px;
+        margin-bottom: 6px;
+      }
+
+      .id-label {
+        font-size: 0.5rem;
+      }
+
+      .id-value {
+        font-size: 0.68rem;
+        letter-spacing: 0;
+      }
+
+      .copy-badge {
+        font-size: 0.6rem;
+      }
+
+      .links-grid {
+        gap: 3px;
+      }
+
+      .link-btn {
+        padding: 5px 2px;
+        font-size: 0.6rem;
+      }
+
+      .link-btn svg {
+        width: 10px;
+        height: 10px;
+        margin-bottom: 1px;
+      }
 
       .card-admin-bar {
         margin-top: 4px;
@@ -1239,26 +1537,35 @@
         gap: 4px;
         justify-content: space-between;
       }
+
       .card-admin-btn {
         padding: 2px 4px;
         font-size: 0.6rem;
         flex: 1;
         justify-content: center;
       }
-      .card-admin-btn svg { width: 9px; height: 9px; }
+
+      .card-admin-btn svg {
+        width: 9px;
+        height: 9px;
+      }
     }
 
     @media (max-width: 380px) {
-      .poster-grid { grid-template-columns: 1fr; }
+      .poster-grid {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
+
 <body class="theme-wanted">
 
   <!-- 画面右上固定のUI切り替えボックス -->
   <div class="theme-select-box">
     <span>🎨</span>
-    <select id="themeSelectDropdown" class="theme-select-dropdown" onchange="selectTheme(this.value)" aria-label="UIテーマ選択">
+    <select id="themeSelectDropdown" class="theme-select-dropdown" onchange="selectTheme(this.value)"
+      aria-label="UIテーマ選択">
       <option value="wanted">WANTED (酒場)</option>
       <option value="modern">MODERN (ネオン)</option>
       <option value="japanese">JAPANESE (涼風和風)</option>
@@ -1267,21 +1574,26 @@
 
   <div class="app-container">
     <div class="board-container">
-      
-      <div class="top-controls" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+
+      <div class="top-controls"
+        style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
         <div class="status-badge">
           <span class="dot" id="statusDot"></span>
           <span id="statusText">CONNECTING SALOON</span>
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <span id="apiQuotaText" style="font-size: 0.72rem; opacity: 0.9; font-weight: 600; background: rgba(0,0,0,0.4); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--gold-accent);">
+          <span id="apiQuotaText"
+            style="font-size: 0.72rem; color: #ffffff; opacity: 0.95; font-weight: 600; background: rgba(0,0,0,0.55); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--gold-accent);">
             🔑 ewgf API 本日使用: 約3回 (1日100回目安・12hキャッシュ)
           </span>
-          <button class="btn-wood" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 4px;" onclick="promptCustomWorkerUrl()">
+          <button class="btn-wood" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 4px;"
+            onclick="promptCustomWorkerUrl()">
             🌐 Worker設定
           </button>
-          <button class="btn-wood" style="padding: 5px 12px; font-size: 0.75rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;" onclick="refreshAllWavuStats()">
+          <button class="btn-wood"
+            style="padding: 5px 12px; font-size: 0.75rem; border-radius: 4px; display: inline-flex; align-items: center; gap: 4px;"
+            onclick="refreshAllWavuStats()">
             ⚡ 全ステータス一括更新
           </button>
         </div>
@@ -1293,7 +1605,8 @@
             <span id="titleText">TEKKEN 8 WANTED</span>
             <span class="title-edit-hint">✏️</span>
           </h1>
-          <input class="title-input" type="text" id="titleInput" maxlength="40" style="display:none;" aria-label="タイトル編集">
+          <input class="title-input" type="text" id="titleInput" maxlength="40" style="display:none;"
+            aria-label="タイトル編集">
           <div class="saloon-subtitle" id="subTitleText">鉄拳8 プレイヤー手配書掲示板 (WANTED LIST)</div>
         </div>
         <br>
@@ -1324,7 +1637,7 @@
       <form id="memberForm" onsubmit="saveMember(event)">
         <input type="hidden" id="editKey" value="">
         <input type="hidden" id="photoData" value="">
-        
+
         <div class="form-group">
           <label class="form-label" for="inputName">プレイヤー名 / 容疑者名</label>
           <input class="form-input" type="text" id="inputName" placeholder="例: 三島 一八" required maxlength="50">
@@ -1332,7 +1645,8 @@
 
         <div class="form-group">
           <label class="form-label" for="inputId">鉄拳8 ID (12桁ハイフン不要)</label>
-          <input class="form-input" type="text" id="inputId" placeholder="例: 3A4B5C6D7E8F (ハイフン不要)" required maxlength="60">
+          <input class="form-input" type="text" id="inputId" placeholder="例: 3A4B5C6D7E8F (ハイフン不要)" required
+            maxlength="60">
           <div class="form-note">※ハイフン無しの12桁IDを入力してください。ハイフンを含めて入力しても自動で除去・整形されます。</div>
         </div>
 
@@ -1348,28 +1662,34 @@
         </div>
 
         <!-- 手動ステータス（ペンタゴン）カスタム項目 -->
-        <div class="form-group" style="border: 1px dashed var(--gold-accent); padding: 12px; border-radius: 6px; background: rgba(0,0,0,0.25);">
+        <div class="form-group"
+          style="border: 1px dashed var(--gold-accent); padding: 12px; border-radius: 6px; background: rgba(0,0,0,0.25);">
           <label class="form-label" style="margin-bottom: 8px;">📊 鉄拳8 5角形能力値（手動カスタマイズ）</label>
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.78rem;">
             <div>
               <label style="display:block; margin-bottom:2px;">ATTACK (攻撃力): <span id="valAttack">75</span></label>
-              <input type="range" id="inputAttack" min="10" max="100" value="75" style="width:100%" oninput="document.getElementById('valAttack').textContent=this.value">
+              <input type="range" id="inputAttack" min="10" max="100" value="75" style="width:100%"
+                oninput="document.getElementById('valAttack').textContent=this.value">
             </div>
             <div>
               <label style="display:block; margin-bottom:2px;">DEFENSE (防御力): <span id="valDefense">70</span></label>
-              <input type="range" id="inputDefense" min="10" max="100" value="70" style="width:100%" oninput="document.getElementById('valDefense').textContent=this.value">
+              <input type="range" id="inputDefense" min="10" max="100" value="70" style="width:100%"
+                oninput="document.getElementById('valDefense').textContent=this.value">
             </div>
             <div>
               <label style="display:block; margin-bottom:2px;">TECH (手法): <span id="valTech">80</span></label>
-              <input type="range" id="inputTech" min="10" max="100" value="80" style="width:100%" oninput="document.getElementById('valTech').textContent=this.value">
+              <input type="range" id="inputTech" min="10" max="100" value="80" style="width:100%"
+                oninput="document.getElementById('valTech').textContent=this.value">
             </div>
             <div>
               <label style="display:block; margin-bottom:2px;">SPIRIT (精神力): <span id="valSpirit">85</span></label>
-              <input type="range" id="inputSpirit" min="10" max="100" value="85" style="width:100%" oninput="document.getElementById('valSpirit').textContent=this.value">
+              <input type="range" id="inputSpirit" min="10" max="100" value="85" style="width:100%"
+                oninput="document.getElementById('valSpirit').textContent=this.value">
             </div>
             <div style="grid-column: span 2;">
               <label style="display:block; margin-bottom:2px;">APPEAL (アピール): <span id="valAppeal">75</span></label>
-              <input type="range" id="inputAppeal" min="10" max="100" value="75" style="width:100%" oninput="document.getElementById('valAppeal').textContent=this.value">
+              <input type="range" id="inputAppeal" min="10" max="100" value="75" style="width:100%"
+                oninput="document.getElementById('valAppeal').textContent=this.value">
             </div>
           </div>
           <div class="form-note" style="margin-top:6px;">※外部取得が失敗した場合や、賞金首ごとに好きな能力値を演出したい時に調整できます。</div>
@@ -1386,10 +1706,12 @@
               <div class="photo-controls">
                 <label class="file-input-btn" onclick="event.stopPropagation()">
                   📷 画像を選択
-                  <input type="file" id="inputPhotoFile" accept="image/*" style="display:none;" onchange="handleFileSelect(event)">
+                  <input type="file" id="inputPhotoFile" accept="image/*" style="display:none;"
+                    onchange="handleFileSelect(event)">
                 </label>
                 <div>
-                  <button class="btn-remove-photo" type="button" id="btnRemovePhoto" style="display:none;" onclick="event.stopPropagation(); removePhoto()">画像を消去</button>
+                  <button class="btn-remove-photo" type="button" id="btnRemovePhoto" style="display:none;"
+                    onclick="event.stopPropagation(); removePhoto()">画像を消去</button>
                 </div>
               </div>
             </div>
@@ -1450,13 +1772,13 @@
   <script>
     // Firebase Config
     const firebaseConfig = {
-      apiKey:            "AIzaSyCducuGe87lyMAloGbciWd0WJZvEyFmS9k",
-      authDomain:        "wanted-815de.firebaseapp.com",
-      databaseURL:       "https://wanted-815de-default-rtdb.firebaseio.com",
-      projectId:         "wanted-815de",
-      storageBucket:     "wanted-815de.firebasestorage.app",
+      apiKey: "AIzaSyCducuGe87lyMAloGbciWd0WJZvEyFmS9k",
+      authDomain: "wanted-815de.firebaseapp.com",
+      databaseURL: "https://wanted-815de-default-rtdb.firebaseio.com",
+      projectId: "wanted-815de",
+      storageBucket: "wanted-815de.firebasestorage.app",
       messagingSenderId: "269107410785",
-      appId:             "1:269107410785:web:447aa03d18cebaf4047720"
+      appId: "1:269107410785:web:447aa03d18cebaf4047720"
     };
 
     const PRESET_COLORS = [
@@ -1538,11 +1860,11 @@
       currentTheme = newTheme;
       localStorage.setItem('preferred_theme', currentTheme);
       applyTheme(currentTheme);
-      
+
       let themeLabel = 'WANTED (酒場)';
       if (currentTheme === 'modern') themeLabel = 'MODERN (ネオン)';
       if (currentTheme === 'japanese') themeLabel = 'JAPANESE (涼風和風)';
-      
+
       showToast(`UIテーマを [ ${themeLabel} ] に変更しました`);
     }
 
@@ -1612,7 +1934,7 @@
       }
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = function (e) {
         const cropImage = document.getElementById('cropImage');
         cropImage.src = e.target.result;
         openModal('cropModal');
@@ -1740,7 +2062,7 @@
         const currentCount = parseInt(localStorage.getItem('t8_ewgf_api_call_count') || '0', 10) + 1;
         localStorage.setItem('t8_ewgf_api_call_count', currentCount.toString());
         updateApiCallBadge(currentCount);
-      } catch (e) {}
+      } catch (e) { }
     }
 
     function updateApiCallBadge(count) {
@@ -1818,7 +2140,7 @@
 
           if (res.ok) {
             const html = await res.text();
-            
+
             // 埋め込み JSON script: const data = [{"battle_at":...,"rating_after":1197,"rating_before":1175,...}]
             const jsonMatch = html.match(/const\s+data\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
             if (jsonMatch) {
@@ -2190,7 +2512,7 @@
               </div>
               <div class="stats-info-item">
                 <span class="stats-info-label">Rating:</span>
-                <span class="stats-info-val val-rating" style="color:var(--gold-accent); font-weight:800; font-size:0.88rem;">${cachedStats && cachedStats.ratingMu !== null ? `μ ${cachedStats.ratingMu} (${cachedStats.mainChar || ''})` : 'データ取得中'}</span>
+                <span class="stats-info-val val-rating">${cachedStats && cachedStats.ratingMu !== null ? `μ ${cachedStats.ratingMu} (${cachedStats.mainChar || ''})` : 'データ取得中'}</span>
               </div>
               <div class="stats-info-item">
                 <span class="stats-info-label">Power:</span>
@@ -2286,7 +2608,7 @@
       document.getElementById('inputXUrl').value = '';
       document.getElementById('inputPhotoFile').value = '';
       setPhotoPreview('');
-      
+
       // スタッツ初期値
       document.getElementById('inputAttack').value = 75;
       document.getElementById('valAttack').textContent = 75;
@@ -2400,8 +2722,8 @@
 
       if (key) {
         membersRef.child(key).update(data)
-          .then(() => { 
-            closeModal('editModal'); 
+          .then(() => {
+            closeModal('editModal');
             showToast(`${name} を更新しました`);
             drawRadarChart(`radar_${key}`, existingStats);
           });
@@ -2473,4 +2795,5 @@
     init();
   </script>
 </body>
+
 </html>
