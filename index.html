@@ -8,6 +8,13 @@
   <meta name="description" content="鉄拳8 メンバーネームカード＆手配書リスト">
   <meta name="color-scheme" content="light">
   <meta name="supported-color-schemes" content="light">
+  <meta name="theme-color" content="#1b120c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="T8 Cards">
+  <link rel="icon" href="assets/app-icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/app-icon.svg">
+  <link rel="manifest" href="manifest.webmanifest">
   <title>TEKKEN 8 Member Cards</title>
 
   <!-- Fonts -->
@@ -2286,7 +2293,53 @@
       }
     }
 
-    // wank.wavu.wiki から Leaderboard (σ² < 75) 内で最も試合数が多いメインキャラ & μ レート & 最新対戦日時を抽出
+    // wank.wavu.wiki の全キャラから、最も試合数が多いキャラをメインとして選ぶ。
+    // Leaderboard 掲載可否（σ²）はメイン判定に使わない。
+    function selectWavuMain(charGamesMap, charRatingMap) {
+      let mainChar = null;
+      let mainCharGames = 0;
+
+      for (const [charName, rawGames] of Object.entries(charGamesMap || {})) {
+        const games = Number(rawGames);
+        if (Number.isFinite(games) && games > mainCharGames) {
+          mainChar = charName;
+          mainCharGames = games;
+        }
+      }
+
+      return {
+        mainChar,
+        mainCharGames: mainChar ? mainCharGames : null,
+        ratingMu: mainChar && charRatingMap && charRatingMap[mainChar] !== undefined
+          ? Number(charRatingMap[mainChar])
+          : null
+      };
+    }
+
+    // Wavu の rating カードを DOM から読む。正規表現で入れ子の div を読むと
+    // ページ構造の小さな変更で壊れるため、各カードを独立して解析する。
+    function parseWavuRatings(html) {
+      const charGamesMap = {};
+      const charRatingMap = {};
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      const ratingCards = doc.querySelectorAll('.rating');
+
+      ratingCards.forEach((card) => {
+        const charName = card.querySelector('.char')?.textContent?.trim();
+        const muText = card.querySelector('.mu')?.textContent || '';
+        const gamesText = card.querySelector('.games')?.textContent || '';
+        const muMatch = muText.match(/μ\s*([\d,]+)/u);
+        const gamesMatch = gamesText.match(/([\d,]+)\s*games?/i);
+        if (!charName || !gamesMatch) return;
+
+        charGamesMap[charName] = Number(gamesMatch[1].replace(/,/g, ''));
+        if (muMatch) charRatingMap[charName] = Number(muMatch[1].replace(/,/g, ''));
+      });
+
+      return { charGamesMap, charRatingMap };
+    }
+
+    // wank.wavu.wiki から全キャラの試合数と μ を取得する。
     async function fetchRealWavuData(cleanId) {
       let ratingMu = null;
       let mainChar = null;
@@ -2320,6 +2373,11 @@
               if (data.charRatingMap) {
                 charRatingMap = data.charRatingMap;
               }
+              // Worker がマップを返した場合も、必ず最多試合キャラから表示値を決める。
+              const selected = selectWavuMain(charGamesMap, charRatingMap);
+              mainChar = selected.mainChar || mainChar;
+              mainCharGames = selected.mainCharGames || mainCharGames;
+              ratingMu = selected.ratingMu !== null ? selected.ratingMu : ratingMu;
               if (mainChar || ratingMu !== null || Object.keys(charGamesMap).length > 0) {
                 return { ratingMu, mainChar, mainCharGames, charGamesMap, charRatingMap, wavuLatestTs };
               }
@@ -2368,64 +2426,14 @@
               }
             }
 
-            // Leaderboard (σ² < 75) のみ抽出
-            const ratingGroupBlocks = html.match(/<div class="rating-group">[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/g) || [];
-            for (const groupBlock of ratingGroupBlocks) {
-              const labelMatch = groupBlock.match(/class="label">\s*([\s\S]*?)\s*<\/div>/);
-              if (!labelMatch) continue;
-              const label = labelMatch[1].trim();
-              const isLeaderboard = /Leaderboard\s*\(\s*σ²\s*(?:<|&lt;)\s*75\s*\)/i.test(label);
-              if (!isLeaderboard) continue;
-
-              const ratingDivs = groupBlock.match(/<div class="rating">[\s\S]*?<div class="games">[\s\S]*?<\/div>/g) || [];
-              for (const ratingDiv of ratingDivs) {
-                const charMatch = ratingDiv.match(/class="char">\s*([^<]+)\s*</);
-                const muMatch = ratingDiv.match(/class="mu">\s*μ\s*(\d+)/);
-                const gamesMatch = ratingDiv.match(/class="games">\s*([\d,]+)\s*games?/i);
-                if (charMatch && gamesMatch) {
-                  const cName = charMatch[1].trim();
-                  const gCount = parseInt(gamesMatch[1].replace(/,/g, ''), 10);
-                  charGamesMap[cName] = gCount;
-                  if (muMatch) {
-                    charRatingMap[cName] = parseInt(muMatch[1], 10);
-                  }
-                }
-              }
-            }
-
-            // 最も試合数の多いキャラを Leaderboard から選択
-            let maxG = 0;
-            for (const [cName, gCount] of Object.entries(charGamesMap)) {
-              if (gCount > maxG) {
-                maxG = gCount;
-                mainChar = cName;
-                if (charRatingMap[cName]) {
-                  ratingMu = charRatingMap[cName];
-                }
-              }
-            }
-            if (mainChar) mainCharGames = maxG;
-
-            // フォールバック: Leaderboard に存在しない場合、全体の rating ブロックからフォールバック
-            if (!mainChar) {
-              const ratingBlocks = html.match(/<div class="rating">[\s\S]*?<\/div>\s*<\/div>/g) || html.match(/class="rating"[\s\S]*?class="games"[\s\S]*?<\/div>/g) || [];
-              for (const block of ratingBlocks) {
-                const charMatch = block.match(/class="char">\s*([^<]+)\s*</i);
-                const gamesMatch = block.match(/class="games">\s*([\d,]+)\s*games?/i);
-                if (charMatch && gamesMatch) {
-                  const cName = charMatch[1].trim();
-                  const gCount = parseInt(gamesMatch[1].replace(/,/g, ''), 10);
-                  charGamesMap[cName] = gCount;
-                }
-              }
-              for (const [cName, gCount] of Object.entries(charGamesMap)) {
-                if (gCount > maxG) {
-                  maxG = gCount;
-                  mainChar = cName;
-                }
-              }
-              if (mainChar) mainCharGames = maxG;
-            }
+            const parsedRatings = parseWavuRatings(html);
+            charGamesMap = parsedRatings.charGamesMap;
+            charRatingMap = parsedRatings.charRatingMap;
+            const selected = selectWavuMain(charGamesMap, charRatingMap);
+            mainChar = selected.mainChar;
+            mainCharGames = selected.mainCharGames;
+            // 対象キャラの μ がなければ、対戦履歴から推定した値を残す。
+            if (selected.ratingMu !== null) ratingMu = selected.ratingMu;
 
             return { ratingMu, mainChar, mainCharGames, charGamesMap, charRatingMap, wavuLatestTs };
           }
@@ -2516,20 +2524,13 @@
             finalTs = wavuTs;
           }
 
-          let mainCharGames = null;
-          if (wavuData && wavuData.charGamesMap) {
-            if (playerChar && wavuData.charGamesMap[playerChar] !== undefined) {
-              mainCharGames = wavuData.charGamesMap[playerChar];
-            } else {
-              const firstCharKey = Object.keys(wavuData.charGamesMap)[0];
-              if (firstCharKey) mainCharGames = wavuData.charGamesMap[firstCharKey];
-            }
-          }
-
           const statsData = {
             gameId: cleanId,
-            mainChar: playerChar || 'Unknown',
-            mainCharGames: mainCharGames !== null ? mainCharGames : (cached ? cached.mainCharGames : null),
+            // メインと Rating は Wavu で同じキャラを基準にする。ewgf の最新対戦キャラでは上書きしない。
+            mainChar: (wavuData && wavuData.mainChar) || playerChar || 'Unknown',
+            mainCharGames: (wavuData && wavuData.mainCharGames !== null)
+              ? wavuData.mainCharGames
+              : (cached ? cached.mainCharGames : null),
             danRank: playerRank || 'Unranked',
             tekkenPower: playerPower || 0,
             ratingMu: wavuData.ratingMu !== null ? wavuData.ratingMu : (cached ? cached.ratingMu : null),
@@ -2546,8 +2547,8 @@
           let wavuTs = wavuData ? wavuData.wavuLatestTs : null;
           const wavuOnlyStats = {
             gameId: cleanId,
-            mainChar: Object.keys(wavuData.charGamesMap)[0] || (cached ? cached.mainChar : 'Wavu取得済'),
-            mainCharGames: wavuData.charGamesMap[Object.keys(wavuData.charGamesMap)[0]] || null,
+            mainChar: wavuData.mainChar || (cached ? cached.mainChar : 'Wavu取得済'),
+            mainCharGames: wavuData.mainCharGames || null,
             danRank: cached ? cached.danRank : '-',
             tekkenPower: cached ? cached.tekkenPower : 0,
             ratingMu: wavuData.ratingMu,
@@ -3141,6 +3142,13 @@
       input.onblur = null;
       input.style.display = 'none';
       titleEl.style.display = '';
+    }
+
+    // HTTPS または localhost で開いた場合、インストール可能な Web アプリとして登録する。
+    if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch((err) => {
+        console.warn('Service Worker registration failed:', err);
+      }));
     }
 
     init();
