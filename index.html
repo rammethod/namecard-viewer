@@ -1702,11 +1702,14 @@
         padding: 6px 4px;
       }
 
+      /* Rating は桁数が長くなりやすいため、モバイルでは1行分の幅を確保する。 */
+      .stats-preview-metric:nth-child(2),
       .stats-preview-metric:nth-child(3) {
         grid-column: span 2;
         border-top: 1px solid rgba(212, 175, 55, 0.22);
         border-left: 0;
       }
+
 
       .stats-preview-label {
         font-size: 0.5rem;
@@ -2921,14 +2924,17 @@
         }
         const mainCharEl = container.querySelector('.val-main-char');
         if (mainCharEl) {
-          const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
-          mainCharEl.innerHTML = `${escapeHtml(stats.mainChar || 'Unknown')}${gamesText}`;
+          mainCharEl.textContent = stats.mainChar || 'Unknown';
+        }
+        const gamesEl = container.querySelector('.stats-preview-games');
+        if (gamesEl) {
+          gamesEl.textContent = stats.mainCharGames ? `· ${stats.mainCharGames.toLocaleString()} games` : '';
         }
         const rankEl = container.querySelector('.val-rank');
         if (rankEl) rankEl.textContent = stats.danRank || '-';
         const ratingEl = container.querySelector('.val-rating');
         if (ratingEl) {
-          ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : '-';
+          ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu}` : '-';
         }
         const powerEl = container.querySelector('.val-power');
         if (powerEl) {
@@ -3037,7 +3043,7 @@
             <div class="stats-preview-head">
               <div>
                 <p class="stats-preview-eyebrow">Recent main</p>
-                <div class="stats-preview-main"><span class="val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}</span>${cachedStats && cachedStats.mainCharGames ? `<span class="stats-preview-games">· ${cachedStats.mainCharGames.toLocaleString()} games</span>` : ''}</div>
+                <div class="stats-preview-main"><span class="val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}</span><span class="stats-preview-games">${cachedStats && cachedStats.mainCharGames ? `· ${cachedStats.mainCharGames.toLocaleString()} games` : ''}</span></div>
               </div>
               <span class="stats-preview-badge">ewgf · last 50</span>
             </div>
@@ -3103,13 +3109,16 @@
                   container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
                   const mainCharEl = container.querySelector('.val-main-char');
                   if (mainCharEl) {
-                    const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
-                    mainCharEl.innerHTML = `${escapeHtml(stats.mainChar || 'Unknown')}${gamesText}`;
+                    mainCharEl.textContent = stats.mainChar || 'Unknown';
+                  }
+                  const gamesEl = container.querySelector('.stats-preview-games');
+                  if (gamesEl) {
+                    gamesEl.textContent = stats.mainCharGames ? `· ${stats.mainCharGames.toLocaleString()} games` : '';
                   }
                   const rankEl = container.querySelector('.val-rank');
                   if (rankEl) rankEl.textContent = stats.danRank || '-';
                   const ratingEl = container.querySelector('.val-rating');
-                  if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : 'データ取得中';
+                  if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu}` : 'データ取得中';
                   const powerEl = container.querySelector('.val-power');
                   if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
                 }
