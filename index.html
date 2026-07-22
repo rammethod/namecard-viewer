@@ -3174,9 +3174,11 @@
 
     // HTTPS または localhost で開いた場合、インストール可能な Web アプリとして登録する。
     if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch((err) => {
-        console.warn('Service Worker registration failed:', err);
-      }));
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
+        .then((registration) => registration.update())
+        .catch((err) => {
+          console.warn('Service Worker registration failed:', err);
+        }));
     }
 
     init();
