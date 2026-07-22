@@ -2535,10 +2535,30 @@
 
         if (battles && battles.length > 0) {
           const latestBattle = battles[0];
-          const isP1 = cleanTekkenId(latestBattle.p1_tekken_id) === cleanTekkenId(cleanId);
-          const playerChar = isP1 ? latestBattle.p1_char : latestBattle.p2_char;
-          const playerRank = isP1 ? latestBattle.p1_dan_rank : latestBattle.p2_dan_rank;
-          const playerPower = isP1 ? latestBattle.p1_tekken_power : latestBattle.p2_tekken_power;
+          const getPlayerBattleInfo = (battle) => {
+            const isP1 = cleanTekkenId(battle.p1_tekken_id) === cleanTekkenId(cleanId);
+            return {
+              char: isP1 ? battle.p1_char : battle.p2_char,
+              rank: isP1 ? battle.p1_dan_rank : battle.p2_dan_rank,
+              power: isP1 ? battle.p1_tekken_power : battle.p2_tekken_power
+            };
+          };
+          const normaliseCharacter = (charName) => String(charName || '')
+            .toLowerCase()
+            .replace(/[\s\-‐‑‒–—―]/g, '');
+          const latestInfo = getPlayerBattleInfo(latestBattle);
+          const recentMain = wavuData && wavuData.mainChar;
+          // ewgf の履歴は新しい順。Recent main と同じキャラが最初に現れた試合の段位を採用する。
+          const recentMainBattle = recentMain
+            ? battles.find((battle) => normaliseCharacter(getPlayerBattleInfo(battle).char) === normaliseCharacter(recentMain))
+            : null;
+          // Recent main が決まっているのに直近50戦にいない場合、他キャラの段位は表示しない。
+          const rankBattleInfo = recentMain
+            ? (recentMainBattle ? getPlayerBattleInfo(recentMainBattle) : null)
+            : latestInfo;
+          const playerChar = latestInfo.char;
+          const playerRank = rankBattleInfo.rank;
+          const playerPower = latestInfo.power;
 
           let battleTs = null;
           if (latestBattle.battle_at) {
@@ -2559,7 +2579,8 @@
             mainCharGames: (wavuData && wavuData.mainCharGames !== null)
               ? wavuData.mainCharGames
               : (cached ? cached.mainCharGames : null),
-            danRank: playerRank || 'Unranked',
+            // Recent main を直近50戦で最後に使用した試合時点の段位。
+            danRank: playerRank || (recentMain ? '直近50戦内に記録なし' : 'Unranked'),
             tekkenPower: playerPower || 0,
             ratingMu: wavuData.ratingMu !== null ? wavuData.ratingMu : (cached ? cached.ratingMu : null),
             lastSeenTimestamp: finalTs || Date.now(),
@@ -2855,7 +2876,7 @@
                 <span class="stats-info-val val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}${cachedStats && cachedStats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${cachedStats.mainCharGames.toLocaleString()} games)</span>` : ''}</span>
               </div>
               <div class="stats-info-item">
-                <span class="stats-info-label">Rank:</span>
+                <span class="stats-info-label">Recent main rank (last 50):</span>
                 <span class="stats-info-val val-rank" style="font-size:0.65rem;">${cachedStats ? escapeHtml(cachedStats.danRank || '-') : '-'}</span>
               </div>
               <div class="stats-info-item">
