@@ -890,6 +890,104 @@
       background: rgba(212, 175, 55, 0.2);
     }
 
+    /* ===== Stats layout preview: Recent main を主役にしたコンパクト表示 ===== */
+    .card-stats-container {
+      padding: 11px !important;
+      text-align: left;
+      border-style: solid;
+    }
+
+    .stats-preview-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 4px 0 10px;
+    }
+
+    .stats-preview-eyebrow {
+      margin: 0 0 3px;
+      color: #fff0c9;
+      font-size: 0.61rem;
+      font-weight: 800;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.45);
+    }
+
+    .stats-preview-main {
+      font-size: 1.02rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .stats-preview-main .stats-preview-games {
+      margin-left: 4px;
+      opacity: 0.72;
+      font-size: 0.67rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .stats-preview-badge {
+      flex: 0 0 auto;
+      padding: 4px 7px;
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      border-radius: 999px;
+      color: var(--gold-accent);
+      font-size: 0.56rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .stats-preview-metrics {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.82fr) minmax(0, 1fr);
+      overflow: hidden;
+      border: 1px solid rgba(212, 175, 55, 0.28);
+      border-radius: 5px;
+    }
+
+    /* Wantedでは羊皮紙の上に金文字を置かず、濃い木目パネルで十分なコントラストを確保する。 */
+    body.theme-wanted .stats-preview-metrics {
+      background: #2a180d;
+      border-color: #7e5a2f;
+      box-shadow: inset 0 1px 0 rgba(255, 236, 190, 0.08);
+    }
+
+    body.theme-wanted .stats-preview-metric + .stats-preview-metric { border-left-color: #5f4227; }
+    body.theme-wanted .stats-preview-label { color: #f0cf80; }
+    body.theme-wanted .stats-preview-value { color: #fff5df; text-shadow: 0 1px 1px rgba(0, 0, 0, 0.6); }
+    body.theme-wanted .stats-preview-rating { color: #ffda68; }
+    body.theme-wanted .stats-preview-badge {
+      background: #2a180d;
+      border-color: #7e5a2f;
+      color: #fff5df;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+
+    .stats-preview-metric { min-width: 0; padding: 8px 7px; }
+    .stats-preview-metric + .stats-preview-metric { border-left: 1px solid rgba(212, 175, 55, 0.22); }
+    .stats-preview-label { display: block; margin-bottom: 3px; color: #f3ddb0; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+    .stats-preview-value { display: block; overflow: hidden; font-size: 0.74rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+    .stats-preview-metric-rank .stats-preview-value { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.15; }
+    .stats-preview-rating { color: var(--text-red); }
+    .stats-preview-missing { font-size: 0.61rem; line-height: 1.15; white-space: normal; }
+    .card-stats-container .card-refresh-btn { display: flex; justify-content: center; width: 100%; margin-top: 9px; }
+
+    body.theme-modern .stats-preview-rating { color: #f43f5e; }
+    body.theme-japanese .stats-preview-rating { color: #4338ca; }
+    body.theme-modern .stats-preview-eyebrow { color: #e9d5ff; }
+    body.theme-modern .stats-preview-label { color: #c4b5fd; }
+    body.theme-japanese .stats-preview-eyebrow { color: #312e81; text-shadow: none; }
+    body.theme-japanese .stats-preview-label { color: #4338ca; }
+
+    @media (max-width: 420px) {
+      .stats-preview-metric { padding: 7px 5px; }
+      .stats-preview-value { font-size: 0.64rem; }
+      .stats-preview-badge { font-size: 0.5rem; }
+    }
+
     body.theme-wanted .poster-nickname {
       color: #5c3a21;
     }
@@ -2870,22 +2968,26 @@
               ${getLastSeenBadgeHtml(cachedStats ? cachedStats.lastSeenTimestamp : null)}
             </div>
 
-            <div class="stats-info-grid">
-              <div class="stats-info-item">
-                <span class="stats-info-label">Recent main:</span>
-                <span class="stats-info-val val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}${cachedStats && cachedStats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${cachedStats.mainCharGames.toLocaleString()} games)</span>` : ''}</span>
+            <div class="stats-preview-head">
+              <div>
+                <p class="stats-preview-eyebrow">Recent main</p>
+                <div class="stats-preview-main"><span class="val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}</span>${cachedStats && cachedStats.mainCharGames ? `<span class="stats-preview-games">· ${cachedStats.mainCharGames.toLocaleString()} games</span>` : ''}</div>
               </div>
-              <div class="stats-info-item">
-                <span class="stats-info-label">Recent main rank (last 50):</span>
-                <span class="stats-info-val val-rank" style="font-size:0.65rem;">${cachedStats ? escapeHtml(cachedStats.danRank || '-') : '-'}</span>
+              <span class="stats-preview-badge">ewgf · last 50</span>
+            </div>
+
+            <div class="stats-preview-metrics">
+              <div class="stats-preview-metric stats-preview-metric-rank">
+                <span class="stats-preview-label">Rank</span>
+                <span class="stats-preview-value val-rank ${cachedStats && /直近50戦内に記録なし/.test(cachedStats.danRank || '') ? 'stats-preview-missing' : ''}">${cachedStats ? escapeHtml(cachedStats.danRank || '-') : '-'}</span>
               </div>
-              <div class="stats-info-item">
-                <span class="stats-info-label">Rating:</span>
-                <span class="stats-info-val val-rating">${cachedStats && cachedStats.ratingMu !== null ? `μ ${cachedStats.ratingMu} (${cachedStats.mainChar || ''})` : 'データ取得中'}</span>
+              <div class="stats-preview-metric">
+                <span class="stats-preview-label">μ Rating</span>
+                <span class="stats-preview-value stats-preview-rating val-rating">${cachedStats && cachedStats.ratingMu !== null ? `μ ${cachedStats.ratingMu}` : 'データ取得中'}</span>
               </div>
-              <div class="stats-info-item">
-                <span class="stats-info-label">Power:</span>
-                <span class="stats-info-val val-power">${cachedStats && cachedStats.tekkenPower ? cachedStats.tekkenPower.toLocaleString() : '-'}</span>
+              <div class="stats-preview-metric">
+                <span class="stats-preview-label">Power</span>
+                <span class="stats-preview-value val-power">${cachedStats && cachedStats.tekkenPower ? cachedStats.tekkenPower.toLocaleString() : '-'}</span>
               </div>
             </div>
 
