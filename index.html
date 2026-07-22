@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <meta name="description" content="鉄拳8 メンバーネームカード＆手配書リスト">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
   <title>TEKKEN 8 Member Cards</title>
 
   <!-- Fonts -->
@@ -24,13 +26,20 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
 
   <style>
-    /* ========== Reset & Base ========== */
+    /* ========== Reset & Base & Color Lock (OSダークモード勝手変更防止) ========== */
+    :root {
+      color-scheme: light dark;
+      forced-color-adjust: none;
+      -webkit-text-size-adjust: 100%;
+    }
+
     *,
     *::before,
     *::after {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
+      forced-color-adjust: none;
     }
 
     /* ========== THEME 1: WANTED (酒場の賞金首) ========== */
@@ -1094,7 +1103,18 @@
       height: 11px;
     }
 
-    /* Modals */
+    /* Modals & Inputs OSダークモード勝手変更防止 */
+    .modal-content input[type="text"],
+    .modal-content input[type="url"],
+    .modal-content select,
+    .modal-content textarea {
+      color-scheme: dark !important;
+      forced-color-adjust: none !important;
+      background-color: rgba(0, 0, 0, 0.45) !important;
+      color: #edd9b4 !important;
+      border: 1px solid var(--parchment-border) !important;
+    }
+
     .drop-zone {
       border: 2px dashed var(--wood-border);
       border-radius: 6px;
