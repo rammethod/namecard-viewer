@@ -2293,13 +2293,18 @@
       }
     }
 
-    // wank.wavu.wiki の全キャラから、最も試合数が多いキャラをメインとして選ぶ。
-    // Leaderboard 掲載可否（σ²）はメイン判定に使わない。
-    function selectWavuMain(charGamesMap, charRatingMap) {
+    // σ² < 75 のキャラだけから最多試合キャラを選ぶ。該当者がいない場合だけ全キャラに広げる。
+    function selectWavuMain(charGamesMap, charRatingMap, charSigmaMap = {}) {
       let mainChar = null;
       let mainCharGames = 0;
+      const allEntries = Object.entries(charGamesMap || {});
+      const leaderboardEntries = allEntries.filter(([charName]) => {
+        const sigma = Number(charSigmaMap[charName]);
+        return Number.isFinite(sigma) && sigma < 75;
+      });
+      const candidates = leaderboardEntries.length > 0 ? leaderboardEntries : allEntries;
 
-      for (const [charName, rawGames] of Object.entries(charGamesMap || {})) {
+      for (const [charName, rawGames] of candidates) {
         const games = Number(rawGames);
         if (Number.isFinite(games) && games > mainCharGames) {
           mainChar = charName;
@@ -2321,22 +2326,26 @@
     function parseWavuRatings(html) {
       const charGamesMap = {};
       const charRatingMap = {};
+      const charSigmaMap = {};
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const ratingCards = doc.querySelectorAll('.rating');
 
       ratingCards.forEach((card) => {
         const charName = card.querySelector('.char')?.textContent?.trim();
         const muText = card.querySelector('.mu')?.textContent || '';
+        const sigmaText = card.querySelector('.sigma')?.textContent || '';
         const gamesText = card.querySelector('.games')?.textContent || '';
         const muMatch = muText.match(/μ\s*([\d,]+)/u);
+        const sigmaMatch = sigmaText.match(/σ²\s*([\d,]+)/u);
         const gamesMatch = gamesText.match(/([\d,]+)\s*games?/i);
         if (!charName || !gamesMatch) return;
 
         charGamesMap[charName] = Number(gamesMatch[1].replace(/,/g, ''));
         if (muMatch) charRatingMap[charName] = Number(muMatch[1].replace(/,/g, ''));
+        if (sigmaMatch) charSigmaMap[charName] = Number(sigmaMatch[1].replace(/,/g, ''));
       });
 
-      return { charGamesMap, charRatingMap };
+      return { charGamesMap, charRatingMap, charSigmaMap };
     }
 
     // wank.wavu.wiki から全キャラの試合数と μ を取得する。
@@ -2346,6 +2355,7 @@
       let mainCharGames = null;
       let charGamesMap = {};
       let charRatingMap = {};
+      let charSigmaMap = {};
       let wavuLatestTs = null;
 
       // 自前 Worker URL が設定されている場合は優先使用 (Cloudflare ブロック完全回避)
@@ -2373,13 +2383,16 @@
               if (data.charRatingMap) {
                 charRatingMap = data.charRatingMap;
               }
-              // Worker がマップを返した場合も、必ず最多試合キャラから表示値を決める。
-              const selected = selectWavuMain(charGamesMap, charRatingMap);
+              if (data.charSigmaMap) {
+                charSigmaMap = data.charSigmaMap;
+              }
+              // Worker がマップを返した場合も、σ² < 75 を優先して表示値を決める。
+              const selected = selectWavuMain(charGamesMap, charRatingMap, charSigmaMap);
               mainChar = selected.mainChar || mainChar;
               mainCharGames = selected.mainCharGames || mainCharGames;
               ratingMu = selected.ratingMu !== null ? selected.ratingMu : ratingMu;
               if (mainChar || ratingMu !== null || Object.keys(charGamesMap).length > 0) {
-                return { ratingMu, mainChar, mainCharGames, charGamesMap, charRatingMap, wavuLatestTs };
+                return { ratingMu, mainChar, mainCharGames, charGamesMap, charRatingMap, charSigmaMap, wavuLatestTs };
               }
             }
           }
@@ -2429,19 +2442,20 @@
             const parsedRatings = parseWavuRatings(html);
             charGamesMap = parsedRatings.charGamesMap;
             charRatingMap = parsedRatings.charRatingMap;
-            const selected = selectWavuMain(charGamesMap, charRatingMap);
+            charSigmaMap = parsedRatings.charSigmaMap;
+            const selected = selectWavuMain(charGamesMap, charRatingMap, charSigmaMap);
             mainChar = selected.mainChar;
             mainCharGames = selected.mainCharGames;
             // 対象キャラの μ がなければ、対戦履歴から推定した値を残す。
             if (selected.ratingMu !== null) ratingMu = selected.ratingMu;
 
-            return { ratingMu, mainChar, mainCharGames, charGamesMap, charRatingMap, wavuLatestTs };
+            return { ratingMu, mainChar, mainCharGames, charGamesMap, charRatingMap, charSigmaMap, wavuLatestTs };
           }
         } catch (e) {
           console.warn(`Wavu proxy fetch failed for ${url}:`, e);
         }
       }
-      return { ratingMu: null, mainChar: null, mainCharGames: null, charGamesMap: {}, charRatingMap: {}, wavuLatestTs: null };
+      return { ratingMu: null, mainChar: null, mainCharGames: null, charGamesMap: {}, charRatingMap: {}, charSigmaMap: {}, wavuLatestTs: null };
     }
 
     async function fetchEwgfStats(gameId, forceRefresh = false, memberKey = null, isManual = false, targetName = '') {
@@ -2823,7 +2837,7 @@
 
             <div class="stats-info-grid">
               <div class="stats-info-item">
-                <span class="stats-info-label">Main:</span>
+                <span class="stats-info-label">Recent main:</span>
                 <span class="stats-info-val val-main-char">${cachedStats ? escapeHtml(cachedStats.mainChar) : '取得中'}${cachedStats && cachedStats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${cachedStats.mainCharGames.toLocaleString()} games)</span>` : ''}</span>
               </div>
               <div class="stats-info-item">
