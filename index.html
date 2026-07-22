@@ -2658,13 +2658,13 @@
 
         grid.appendChild(card);
 
-        // バックグラウンドでのデータ非同期フェッチ
+        // バックグラウンドでのデータ非同期フェッチ（12時間キャッシュ切れ時の自動取得 & Firebase全端末同期）
         setTimeout(async () => {
-          let stats = getLocalStats(cleanGameId);
-          if (!stats) {
-            stats = await fetchEwgfStats(cleanGameId);
+          let stats = getLocalStats(cleanGameId, m);
+          if (!stats || (Date.now() - (stats.cachedAt || 0) >= CACHE_TTL_MS) || stats.isError) {
+            stats = await fetchEwgfStats(cleanGameId, false, key);
             const container = document.getElementById(`stats_box_${key}`);
-            if (container) {
+            if (container && stats) {
               container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
               const mainCharEl = container.querySelector('.val-main-char');
               if (mainCharEl) {
