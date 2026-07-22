@@ -1661,39 +1661,7 @@
           <div class="form-note">※アカウントをお持ちでない場合は空欄のまま保存してください。（カード上のXボタンが非表示になります）</div>
         </div>
 
-        <!-- 手動ステータス（ペンタゴン）カスタム項目 -->
-        <div class="form-group"
-          style="border: 1px dashed var(--gold-accent); padding: 12px; border-radius: 6px; background: rgba(0,0,0,0.25);">
-          <label class="form-label" style="margin-bottom: 8px;">📊 鉄拳8 5角形能力値（手動カスタマイズ）</label>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 0.78rem;">
-            <div>
-              <label style="display:block; margin-bottom:2px;">ATTACK (攻撃力): <span id="valAttack">75</span></label>
-              <input type="range" id="inputAttack" min="10" max="100" value="75" style="width:100%"
-                oninput="document.getElementById('valAttack').textContent=this.value">
-            </div>
-            <div>
-              <label style="display:block; margin-bottom:2px;">DEFENSE (防御力): <span id="valDefense">70</span></label>
-              <input type="range" id="inputDefense" min="10" max="100" value="70" style="width:100%"
-                oninput="document.getElementById('valDefense').textContent=this.value">
-            </div>
-            <div>
-              <label style="display:block; margin-bottom:2px;">TECH (手法): <span id="valTech">80</span></label>
-              <input type="range" id="inputTech" min="10" max="100" value="80" style="width:100%"
-                oninput="document.getElementById('valTech').textContent=this.value">
-            </div>
-            <div>
-              <label style="display:block; margin-bottom:2px;">SPIRIT (精神力): <span id="valSpirit">85</span></label>
-              <input type="range" id="inputSpirit" min="10" max="100" value="85" style="width:100%"
-                oninput="document.getElementById('valSpirit').textContent=this.value">
-            </div>
-            <div style="grid-column: span 2;">
-              <label style="display:block; margin-bottom:2px;">APPEAL (アピール): <span id="valAppeal">75</span></label>
-              <input type="range" id="inputAppeal" min="10" max="100" value="75" style="width:100%"
-                oninput="document.getElementById('valAppeal').textContent=this.value">
-            </div>
-          </div>
-          <div class="form-note" style="margin-top:6px;">※外部取得が失敗した場合や、賞金首ごとに好きな能力値を演出したい時に調整できます。</div>
-        </div>
+
 
         <!-- Photo Upload & Drag/Drop Area -->
         <div class="form-group">
@@ -1844,6 +1812,9 @@
           }
         });
 
+        // 初期表示を LocalStorage カウントで即時描画
+        updateApiCallBadge(getLocalCallCount());
+
         // Firebase リアルタイム全デバイス同期 API カウンターリスナー
         db.ref('api_quota').on('value', (snap) => {
           const val = snap.val();
@@ -1851,7 +1822,7 @@
           if (val && val.lastDate === today) {
             updateApiCallBadge(val.callCount || 0);
           } else {
-            updateApiCallBadge(0);
+            updateApiCallBadge(getLocalCallCount());
           }
         });
 
@@ -2070,24 +2041,47 @@
       return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
-    function incrementApiCallCounter() {
-      if (!db) return;
-      const quotaRef = db.ref('api_quota');
+    function getLocalCallCount() {
       const today = getTodayString();
+      const savedDate = localStorage.getItem('t8_api_quota_date');
+      if (savedDate !== today) {
+        localStorage.setItem('t8_api_quota_date', today);
+        localStorage.setItem('t8_api_quota_count', '0');
+        return 0;
+      }
+      return parseInt(localStorage.getItem('t8_api_quota_count') || '0', 10);
+    }
 
-      quotaRef.transaction((currentData) => {
-        if (!currentData || currentData.lastDate !== today) {
-          return { callCount: 1, lastDate: today };
-        } else {
-          return { callCount: (currentData.callCount || 0) + 1, lastDate: today };
+    function incrementApiCallCounter() {
+      const today = getTodayString();
+      let currentCount = getLocalCallCount();
+      currentCount++;
+      localStorage.setItem('t8_api_quota_date', today);
+      localStorage.setItem('t8_api_quota_count', String(currentCount));
+      updateApiCallBadge(currentCount);
+
+      if (db) {
+        try {
+          const quotaRef = db.ref('api_quota');
+          quotaRef.transaction((currentData) => {
+            if (!currentData || currentData.lastDate !== today) {
+              return { callCount: currentCount, lastDate: today };
+            } else {
+              const newCount = Math.max(currentCount, (currentData.callCount || 0) + 1);
+              return { callCount: newCount, lastDate: today };
+            }
+          });
+        } catch (e) {
+          console.warn('Firebase transaction warning:', e);
         }
-      });
+      }
     }
 
     function updateApiCallBadge(count) {
       const badge = document.getElementById('apiQuotaText');
       if (badge) {
-        const savedCount = count !== undefined ? count : 0;
+        const localCount = getLocalCallCount();
+        const savedCount = Math.max(count !== undefined ? count : 0, localCount);
         const remaining = Math.max(0, 100 - savedCount);
         badge.textContent = `🔑 ewgf API 本日全体使用: 約${savedCount}回 (残り ${remaining}/100回目安・12hキャッシュ)`;
       }
@@ -2117,10 +2111,11 @@
       }
     }
 
-    // wank.wavu.wiki から正真正銘の本物 μ レート & メインキャラ試合数を100%抽出
+    // wank.wavu.wiki から正真正銘の本物 μ レート & メインキャラ試合数 & 最新対戦日時を100%抽出
     async function fetchRealWavuData(cleanId) {
       let ratingMu = null;
       let charGamesMap = {};
+      let wavuLatestTs = null;
 
       // 自前 Worker URL が設定されている場合は優先使用 (Cloudflare ブロック完全回避)
       const customWorker = getCustomWorkerUrl();
@@ -2132,9 +2127,16 @@
             const data = await res.json();
             if (data) {
               if (data.ratingMu !== undefined && data.ratingMu !== null) ratingMu = data.ratingMu;
+              if (data.latestBattle && data.latestBattle.battle_at) {
+                const raw = Number(data.latestBattle.battle_at);
+                wavuLatestTs = raw < 1e11 ? raw * 1000 : raw;
+              } else if (data.latestBattleAt) {
+                const raw = Number(data.latestBattleAt);
+                wavuLatestTs = raw < 1e11 ? raw * 1000 : raw;
+              }
               if (data.charGamesMap && Object.keys(data.charGamesMap).length > 0) {
                 charGamesMap = data.charGamesMap;
-                return { ratingMu, charGamesMap };
+                return { ratingMu, charGamesMap, wavuLatestTs };
               }
             }
           }
@@ -2145,6 +2147,7 @@
 
       const targetUrl = `https://wank.wavu.wiki/player/${encodeURIComponent(cleanId)}`;
       const proxies = [
+        `https://proxy.cors.sh/${targetUrl}`,
         `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
         `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
         `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
@@ -2160,7 +2163,7 @@
           if (res.ok) {
             const html = await res.text();
 
-            // 埋め込み JSON script: const data = [{"battle_at":...,"rating_after":1197,"rating_before":1175,...}]
+            // 埋め込み JSON script: const data = [{"battle_at":1784672292,"rating_after":1197,...}]
             const jsonMatch = html.match(/const\s+data\s*=\s*(\[\s*\{[\s\S]*?\}\s*\]);/);
             if (jsonMatch) {
               try {
@@ -2168,6 +2171,10 @@
                 if (battleData && battleData.length > 0) {
                   const latest = battleData[0];
                   ratingMu = latest.rating_after !== undefined ? latest.rating_after : latest.rating_before;
+                  if (latest.battle_at) {
+                    const rawTs = Number(latest.battle_at);
+                    wavuLatestTs = rawTs < 1e11 ? rawTs * 1000 : rawTs;
+                  }
                 }
               } catch (e) {
                 console.warn('Wavu JSON parse error:', e);
@@ -2194,13 +2201,13 @@
               }
             }
 
-            return { ratingMu, charGamesMap };
+            return { ratingMu, charGamesMap, wavuLatestTs };
           }
         } catch (e) {
           console.warn(`Wavu proxy fetch failed for ${url}:`, e);
         }
       }
-      return { ratingMu: null, charGamesMap: {} };
+      return { ratingMu: null, charGamesMap: {}, wavuLatestTs: null };
     }
 
     async function fetchEwgfStats(gameId, forceRefresh = false) {
@@ -2213,26 +2220,55 @@
       }
 
       const apiKey = getEwgfApiKey();
-      if (!apiKey) {
-        const errStats = cached || { gameId: cleanId, mainChar: 'API Key未設定', isError: true };
-        return errStats;
-      }
 
       try {
         incrementApiCallCounter(); // API呼び出しをカウント
 
-        const res = await fetch(`https://api.ewgf.gg/external/battles/${encodeURIComponent(cleanId)}`, {
-          headers: {
-            'Authorization': `Bearer ${apiKey}`
-          }
-        });
+        let json = null;
+        const customWorker = getCustomWorkerUrl();
 
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
+        // 1. 自前 Worker がある場合は優先使用
+        if (customWorker) {
+          try {
+            const workerEndpoint = `${customWorker.replace(/\/$/, '')}?ewgfId=${encodeURIComponent(cleanId)}`;
+            const res = await fetch(workerEndpoint);
+            if (res.ok) {
+              json = await res.json();
+            }
+          } catch (wErr) {
+            console.warn('Worker ewgf fetch failed:', wErr);
+          }
         }
 
-        const json = await res.json();
-        const battles = Array.isArray(json) ? json : (json.data || []);
+        // 2. 直接 fetch または CORS プロキシ経由で api.ewgf.gg を試行
+        if (!json && apiKey) {
+          const targetUrl = `https://api.ewgf.gg/external/battles/${encodeURIComponent(cleanId)}`;
+          const fetchTargets = [
+            { url: targetUrl, headers: { 'Authorization': `Bearer ${apiKey}` } },
+            { url: `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`, headers: { 'Authorization': `Bearer ${apiKey}` } },
+            { url: `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`, headers: { 'Authorization': `Bearer ${apiKey}` } }
+          ];
+
+          for (const target of fetchTargets) {
+            try {
+              const controller = new AbortController();
+              const timeoutId = setTimeout(() => controller.abort(), 5000);
+              const res = await fetch(target.url, { headers: target.headers, signal: controller.signal });
+              clearTimeout(timeoutId);
+              if (res.ok) {
+                json = await res.json();
+                break;
+              }
+            } catch (e) {
+              console.warn(`Fetch failed for ${target.url}`, e);
+            }
+          }
+        }
+
+        const battles = json ? (Array.isArray(json) ? json : (json.data || [])) : [];
+
+        // wank.wavu.wiki から最新 μ レート & メインキャラ試合数 & 最新対戦日時を取得
+        const wavuData = await fetchRealWavuData(cleanId);
 
         if (battles && battles.length > 0) {
           const latestBattle = battles[0];
@@ -2246,8 +2282,13 @@
             battleTs = new Date(latestBattle.battle_at).getTime();
           }
 
-          // wank.wavu.wiki から正真正銘の最新本物 μ レート & メインキャラ試合数を取得
-          const wavuData = await fetchRealWavuData(cleanId);
+          // ewgf の battle_at と wavu の battle_at を比較し、より最新のタイムスタンプを優先
+          let wavuTs = wavuData ? wavuData.wavuLatestTs : null;
+          let finalTs = battleTs;
+          if (wavuTs && (!finalTs || wavuTs > finalTs)) {
+            finalTs = wavuTs;
+          }
+
           let mainCharGames = null;
           if (wavuData && wavuData.charGamesMap) {
             if (playerChar && wavuData.charGamesMap[playerChar] !== undefined) {
@@ -2265,21 +2306,39 @@
             danRank: playerRank || 'Unranked',
             tekkenPower: playerPower || 0,
             ratingMu: wavuData.ratingMu !== null ? wavuData.ratingMu : (cached ? cached.ratingMu : null),
-            lastSeenTimestamp: battleTs || Date.now(),
+            lastSeenTimestamp: finalTs || Date.now(),
             totalBattlesFetched: battles.length,
+            isError: false,
             updatedAt: Date.now()
           };
 
           setLocalStats(cleanId, statsData);
           return statsData;
-        } else {
-          const noBattleStats = cached || {
+        } else if (wavuData && wavuData.ratingMu !== null) {
+          // ewgf記録がなくても wavu データが取れた場合
+          let wavuTs = wavuData ? wavuData.wavuLatestTs : null;
+          const wavuOnlyStats = {
             gameId: cleanId,
-            mainChar: '対戦記録なし',
-            danRank: '-',
-            tekkenPower: 0,
-            ratingMu: null,
-            lastSeenTimestamp: null,
+            mainChar: Object.keys(wavuData.charGamesMap)[0] || (cached ? cached.mainChar : 'Wavu取得済'),
+            mainCharGames: wavuData.charGamesMap[Object.keys(wavuData.charGamesMap)[0]] || null,
+            danRank: cached ? cached.danRank : '-',
+            tekkenPower: cached ? cached.tekkenPower : 0,
+            ratingMu: wavuData.ratingMu,
+            lastSeenTimestamp: wavuTs || (cached ? cached.lastSeenTimestamp : Date.now()),
+            isError: false,
+            updatedAt: Date.now()
+          };
+          setLocalStats(cleanId, wavuOnlyStats);
+          return wavuOnlyStats;
+        } else {
+          const noBattleStats = {
+            gameId: cleanId,
+            mainChar: cached ? cached.mainChar : '対戦記録なし',
+            danRank: cached ? cached.danRank : '-',
+            tekkenPower: cached ? cached.tekkenPower : 0,
+            ratingMu: cached ? cached.ratingMu : null,
+            lastSeenTimestamp: cached ? cached.lastSeenTimestamp : null,
+            isError: false,
             updatedAt: Date.now()
           };
           setLocalStats(cleanId, noBattleStats);
@@ -2287,13 +2346,13 @@
         }
       } catch (err) {
         console.warn(`ewgf API fetch error for ${cleanId}:`, err);
-        const errorStats = cached || {
+        const errorStats = {
           gameId: cleanId,
-          mainChar: '通信エラー',
-          danRank: '-',
-          tekkenPower: 0,
-          ratingMu: null,
-          lastSeenTimestamp: null,
+          mainChar: (cached && cached.mainChar) ? cached.mainChar : '通信エラー',
+          danRank: (cached && cached.danRank) ? cached.danRank : '-',
+          tekkenPower: (cached && cached.tekkenPower) ? cached.tekkenPower : 0,
+          ratingMu: (cached && cached.ratingMu !== undefined) ? cached.ratingMu : null,
+          lastSeenTimestamp: (cached && cached.lastSeenTimestamp) ? cached.lastSeenTimestamp : null,
           isError: true,
           updatedAt: Date.now()
         };
@@ -2418,8 +2477,11 @@
       showToast(`🔄 ewgf API から ID[${gameId}] の対戦データを取得中...`);
       const stats = await fetchEwgfStats(gameId, true);
       const container = document.getElementById(`stats_box_${key}`);
-      if (container) {
-        container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
+      if (container && stats) {
+        const badgeWrapper = container.querySelector('.last-seen-badge-wrapper');
+        if (badgeWrapper) {
+          badgeWrapper.innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
+        }
         const mainCharEl = container.querySelector('.val-main-char');
         if (mainCharEl) {
           const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
@@ -2428,25 +2490,39 @@
         const rankEl = container.querySelector('.val-rank');
         if (rankEl) rankEl.textContent = stats.danRank || '-';
         const ratingEl = container.querySelector('.val-rating');
-        if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : '-';
+        if (ratingEl) {
+          ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : '-';
+        }
         const powerEl = container.querySelector('.val-power');
-        if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
+        if (powerEl) {
+          powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
+        }
 
-        drawRadarChart(`radar_${key}`, stats);
+        const canvasEl = document.getElementById(`radar_${key}`);
+        if (canvasEl) drawRadarChart(`radar_${key}`, stats);
       }
       showToast(`✨ ewgf 公式データを最新に更新しました！`);
+      return stats;
     }
 
     async function refreshAllWavuStats() {
-      showToast('⚡ 全賞金首の ewgf 最新データを順次取得中...');
-      const cards = document.querySelectorAll('.poster-card');
-      for (const card of cards) {
-        const refreshBtn = card.querySelector('.card-refresh-btn');
-        if (refreshBtn) refreshBtn.click();
+      if (!window.currentMembersData) {
+        showToast('⚠️ メンバーデータを読み込み中です...');
+        return;
       }
+      showToast('⚡ 全賞金首の ewgf 最新データを順次一括更新中...');
+      const entries = Object.entries(window.currentMembersData);
+      for (const [key, m] of entries) {
+        const cleanId = cleanTekkenId(m.gameId);
+        if (cleanId) {
+          await refreshCardStats(cleanId, key);
+        }
+      }
+      showToast('🎉 全賞金首の最新データ一括更新が完了しました！');
     }
 
     function renderPosters(data) {
+      window.currentMembersData = data;
       const grid = document.getElementById('posterGrid');
       const empty = document.getElementById('emptyState');
       grid.innerHTML = '';
@@ -2613,6 +2689,50 @@
       showToast(`🎯 ${name} の 鉄拳8 ID [${gameId}] をコピーしました！`);
     }
 
+    function renderColorPresets() {
+      const container = document.getElementById('colorPresets');
+      if (!container) return;
+      container.innerHTML = '';
+
+      PRESET_COLORS.forEach(color => {
+        const swatch = document.createElement('div');
+        swatch.className = 'color-swatch' + (color === selectedColor ? ' selected' : '');
+        swatch.style.backgroundColor = color;
+        swatch.onclick = () => {
+          selectedColor = color;
+          document.querySelectorAll('.color-swatch').forEach(el => el.classList.remove('selected'));
+          swatch.classList.add('selected');
+        };
+        container.appendChild(swatch);
+      });
+    }
+
+    function setPhotoPreview(url) {
+      const preview = document.getElementById('photoPreview');
+      const photoDataInput = document.getElementById('photoData');
+      const btnRemove = document.getElementById('btnRemovePhoto');
+
+      if (photoDataInput) photoDataInput.value = url || '';
+
+      if (preview) {
+        if (url) {
+          preview.innerHTML = `<img src="${escapeHtml(url)}" alt="Preview">`;
+        } else {
+          preview.innerHTML = `<span>無画像</span>`;
+        }
+      }
+
+      if (btnRemove) {
+        btnRemove.style.display = url ? 'inline-block' : 'none';
+      }
+    }
+
+    function removePhoto() {
+      setPhotoPreview('');
+      const input = document.getElementById('inputPhotoFile');
+      if (input) input.value = '';
+    }
+
     function openAddModal() {
       document.getElementById('modalTitle').textContent = 'メンバーを作成';
       let btnLabel = '保存する';
@@ -2628,27 +2748,13 @@
       document.getElementById('inputPhotoFile').value = '';
       setPhotoPreview('');
 
-      // スタッツ初期値
-      document.getElementById('inputAttack').value = 75;
-      document.getElementById('valAttack').textContent = 75;
-      document.getElementById('inputDefense').value = 70;
-      document.getElementById('valDefense').textContent = 70;
-      document.getElementById('inputTech').value = 80;
-      document.getElementById('valTech').textContent = 80;
-      document.getElementById('inputSpirit').value = 85;
-      document.getElementById('valSpirit').textContent = 85;
-      document.getElementById('inputAppeal').value = 75;
-      document.getElementById('valAppeal').textContent = 75;
-
       selectedColor = PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
       renderColorPresets();
       openModal('editModal');
     }
 
     function openEditModal(key) {
-      membersRef.child(key).once('value', (snap) => {
-        const m = snap.val();
-        if (!m) return;
+      const populateAndOpen = (m) => {
         document.getElementById('modalTitle').textContent = 'メンバーを編集';
         let btnLabel = '保存する';
         if (currentTheme === 'wanted') btnLabel = '手配書を更新する';
@@ -2665,24 +2771,19 @@
         document.getElementById('inputPhotoFile').value = '';
         setPhotoPreview(m.photoData || '');
 
-        // キャッシュされたスタッツまたはデフォルト値
-        const cached = getLocalStats(cleanId);
-        const cs = (cached && cached.customStats) ? cached.customStats : { attack: 75, defense: 70, technique: 80, spirit: 85, appeal: 75 };
-        document.getElementById('inputAttack').value = cs.attack || 75;
-        document.getElementById('valAttack').textContent = cs.attack || 75;
-        document.getElementById('inputDefense').value = cs.defense || 70;
-        document.getElementById('valDefense').textContent = cs.defense || 70;
-        document.getElementById('inputTech').value = cs.technique || 80;
-        document.getElementById('valTech').textContent = cs.technique || 80;
-        document.getElementById('inputSpirit').value = cs.spirit || 85;
-        document.getElementById('valSpirit').textContent = cs.spirit || 85;
-        document.getElementById('inputAppeal').value = cs.appeal || 75;
-        document.getElementById('valAppeal').textContent = cs.appeal || 75;
-
         selectedColor = m.color || PRESET_COLORS[0];
         renderColorPresets();
         openModal('editModal');
-      });
+      };
+
+      if (window.currentMembersData && window.currentMembersData[key]) {
+        populateAndOpen(window.currentMembersData[key]);
+      } else if (membersRef) {
+        membersRef.child(key).once('value', (snap) => {
+          const m = snap.val();
+          if (m) populateAndOpen(m);
+        });
+      }
     }
 
     function openDeleteModal(key, name) {
@@ -2715,19 +2816,6 @@
 
       if (!name || !gameId) return;
 
-      // 手動スタッツ読み取り
-      const customStats = {
-        attack: parseInt(document.getElementById('inputAttack').value, 10),
-        defense: parseInt(document.getElementById('inputDefense').value, 10),
-        technique: parseInt(document.getElementById('inputTech').value, 10),
-        spirit: parseInt(document.getElementById('inputSpirit').value, 10),
-        appeal: parseInt(document.getElementById('inputAppeal').value, 10)
-      };
-
-      const existingStats = getLocalStats(gameId) || {};
-      existingStats.customStats = customStats;
-      setLocalStats(gameId, existingStats);
-
       const data = {
         name,
         gameId,
@@ -2744,12 +2832,20 @@
           .then(() => {
             closeModal('editModal');
             showToast(`${name} を更新しました`);
-            drawRadarChart(`radar_${key}`, existingStats);
+          })
+          .catch(err => {
+            showToast('保存エラー: ' + err.message);
           });
       } else {
         data.order = Date.now();
         membersRef.push(data)
-          .then(() => { closeModal('editModal'); showToast(`${name} を追加しました`); });
+          .then(() => {
+            closeModal('editModal');
+            showToast(`${name} を追加しました`);
+          })
+          .catch(err => {
+            showToast('追加エラー: ' + err.message);
+          });
       }
     }
 
