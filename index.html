@@ -1815,8 +1815,8 @@
         // 初期表示を LocalStorage カウントで即時描画
         updateApiCallBadge(getLocalCallCount());
 
-        // Firebase リアルタイム全デバイス同期 API カウンターリスナー
-        db.ref('api_quota').on('value', (snap) => {
+        // Firebase リアルタイム全デバイス同期 API カウンターリスナー (settings ノード)
+        db.ref('settings/api_quota').on('value', (snap) => {
           const val = snap.val();
           const today = getTodayString();
           if (val && val.lastDate === today) {
@@ -2085,7 +2085,7 @@
 
       if (db) {
         try {
-          const quotaRef = db.ref('api_quota');
+          const quotaRef = db.ref('settings/api_quota');
           quotaRef.transaction((currentData) => {
             if (!currentData || currentData.lastDate !== today) {
               return { callCount: currentCount, lastDate: today };
