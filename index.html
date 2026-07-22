@@ -1583,10 +1583,16 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-          <span id="apiQuotaText"
-            style="font-size: 0.72rem; color: #ffffff; opacity: 0.95; font-weight: 600; background: rgba(0,0,0,0.55); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--gold-accent);">
-            🔑 ewgf API 本日使用: 約3回 (1日100回目安・12hキャッシュ)
-          </span>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
+            <span id="apiQuotaText"
+              style="font-size: 0.72rem; color: #ffffff; opacity: 0.95; font-weight: 600; background: rgba(0,0,0,0.55); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--gold-accent);">
+              🔑 ewgf API 本日使用: 約0回 (残り 100/100回目安・12hキャッシュ)
+            </span>
+            <span id="lastUpdateLogText"
+              style="font-size: 0.68rem; color: #edd9b4; opacity: 0.9; font-weight: 600; background: rgba(0,0,0,0.55); padding: 2px 9px; border-radius: 10px; border: 1px dashed var(--gold-accent);">
+              🕒 最終データ更新: 記録読み込み中...
+            </span>
+          </div>
           <button class="btn-wood" style="padding: 5px 10px; font-size: 0.75rem; border-radius: 4px;"
             onclick="promptCustomWorkerUrl()">
             🌐 Worker設定
@@ -1812,8 +1818,9 @@
           }
         });
 
-        // 初期表示を LocalStorage カウントで即時描画
+        // 初期表示を LocalStorage カウント & 最終更新ログで即時描画
         updateApiCallBadge(getLocalCallCount());
+        updateLastUpdateLogBadge();
 
         // Firebase リアルタイム全デバイス同期 API カウンターリスナー (settings ノード)
         db.ref('settings/api_quota').on('value', (snap) => {
@@ -1824,6 +1831,11 @@
           } else {
             updateApiCallBadge(getLocalCallCount());
           }
+        });
+
+        // Firebase リアルタイム全デバイス同期 最終更新ログリスナー (settings ノード)
+        db.ref('settings/last_update_log').on('value', (snap) => {
+          updateLastUpdateLogBadge(snap.val());
         });
 
         membersRef.on('value', (snapshot) => {
@@ -2110,6 +2122,71 @@
       }
     }
 
+    function formatLogTime(ts) {
+      if (!ts) return '未更新';
+      const d = new Date(ts);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const date = String(d.getDate()).padStart(2, '0');
+      const hours = String(d.getHours()).padStart(2, '0');
+      const minutes = String(d.getMinutes()).padStart(2, '0');
+      return `${year}/${month}/${date} ${hours}:${minutes}`;
+    }
+
+    function recordLastUpdateLog(updateType, targetName = '') {
+      const ts = Date.now();
+      const formattedTime = formatLogTime(ts);
+      const typeLabel = updateType === 'manual' ? '手動更新' : '12h自動更新';
+      const targetStr = targetName ? ` (${targetName})` : '';
+
+      const logData = {
+        timestamp: ts,
+        type: updateType,
+        targetName: targetName || '',
+        formattedTime: formattedTime,
+        displayText: `🕒 最終データ更新: ${formattedTime} [${typeLabel}${targetStr}]`
+      };
+
+      try {
+        localStorage.setItem('t8_last_update_log', JSON.stringify(logData));
+        updateLastUpdateLogBadge(logData);
+      } catch (e) {}
+
+      if (db) {
+        try {
+          db.ref('settings/last_update_log').set(logData);
+        } catch (e) {
+          console.warn('Firebase last_update_log write error:', e);
+        }
+      }
+    }
+
+    function updateLastUpdateLogBadge(logData) {
+      const badge = document.getElementById('lastUpdateLogText');
+      if (!badge) return;
+
+      if (logData && logData.displayText) {
+        badge.textContent = logData.displayText;
+        if (logData.type === 'manual') {
+          badge.style.borderColor = 'var(--gold-accent)';
+          badge.style.color = '#f3cf55';
+        } else {
+          badge.style.borderColor = 'rgba(129, 140, 248, 0.6)';
+          badge.style.color = '#edd9b4';
+        }
+      } else {
+        try {
+          const localRaw = localStorage.getItem('t8_last_update_log');
+          if (localRaw) {
+            const parsed = JSON.parse(localRaw);
+            updateLastUpdateLogBadge(parsed);
+            return;
+          }
+        } catch (e) {}
+        badge.textContent = '🕒 最終データ更新: 記録なし';
+      }
+    }
+
     const DEFAULT_WORKER_URL = 'https://cold-cherry-2333.uracil123.workers.dev';
 
     function getCustomWorkerUrl() {
@@ -2233,7 +2310,7 @@
       return { ratingMu: null, charGamesMap: {}, wavuLatestTs: null };
     }
 
-    async function fetchEwgfStats(gameId, forceRefresh = false, memberKey = null) {
+    async function fetchEwgfStats(gameId, forceRefresh = false, memberKey = null, isManual = false, targetName = '') {
       const cleanId = cleanTekkenId(gameId);
       const cached = getLocalStats(cleanId);
 
@@ -2246,6 +2323,7 @@
 
       try {
         incrementApiCallCounter(); // API呼び出しをカウント
+        recordLastUpdateLog(isManual ? 'manual' : 'auto', targetName);
 
         let json = null;
         const customWorker = getCustomWorkerUrl();
@@ -2489,7 +2567,11 @@
 
     async function refreshCardStats(gameId, key) {
       showToast(`🔄 ewgf API から ID[${gameId}] の対戦データを取得中...`);
-      const stats = await fetchEwgfStats(gameId, true, key);
+      let memberName = '';
+      if (window.currentMembersData && window.currentMembersData[key]) {
+        memberName = window.currentMembersData[key].name || '';
+      }
+      const stats = await fetchEwgfStats(gameId, true, key, true, memberName);
       const container = document.getElementById(`stats_box_${key}`);
       if (container && stats) {
         setLocalStats(cleanTekkenId(gameId), stats, key);
@@ -2526,6 +2608,7 @@
         return;
       }
       showToast('⚡ 全賞金首の ewgf 最新データを順次一括更新中...');
+      recordLastUpdateLog('manual', '全メンバー一括');
       const entries = Object.entries(window.currentMembersData);
       for (const [key, m] of entries) {
         const cleanId = cleanTekkenId(m.gameId);
@@ -2662,7 +2745,7 @@
         setTimeout(async () => {
           let stats = getLocalStats(cleanGameId, m);
           if (!stats || (Date.now() - (stats.cachedAt || 0) >= CACHE_TTL_MS) || stats.isError) {
-            stats = await fetchEwgfStats(cleanGameId, false, key);
+            stats = await fetchEwgfStats(cleanGameId, false, key, false, m.name);
             const container = document.getElementById(`stats_box_${key}`);
             if (container && stats) {
               container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
