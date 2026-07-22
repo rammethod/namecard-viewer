@@ -1975,7 +1975,16 @@
       if (key) localStorage.setItem('t8_ewgf_api_key', key.trim());
     }
 
-    function getLocalStats(gameId) {
+    function getLocalStats(gameId, memberData = null) {
+      // 1. Firebase から全端末リアルタイム同期されてきた m.fetchedStats があれば最優先使用
+      if (memberData && memberData.fetchedStats) {
+        try {
+          localStorage.setItem(`${LOCAL_STATS_CACHE_KEY}_${gameId}`, JSON.stringify(memberData.fetchedStats));
+        } catch (e) {}
+        return memberData.fetchedStats;
+      }
+
+      // 2. ローカルストレージを参照
       try {
         const raw = localStorage.getItem(`${LOCAL_STATS_CACHE_KEY}_${gameId}`);
         if (!raw) return null;
@@ -1985,12 +1994,26 @@
       }
     }
 
-    function setLocalStats(gameId, stats) {
+    function setLocalStats(gameId, stats, memberKey = null) {
       try {
         stats.cachedAt = Date.now();
         localStorage.setItem(`${LOCAL_STATS_CACHE_KEY}_${gameId}`, JSON.stringify(stats));
+
+        // Firebase に同期書き込みして全デバイスに即時リアルタイム伝播！
+        if (membersRef) {
+          if (memberKey) {
+            membersRef.child(memberKey).child('fetchedStats').set(stats);
+          } else if (window.currentMembersData) {
+            for (const [k, m] of Object.entries(window.currentMembersData)) {
+              if (cleanTekkenId(m.gameId) === cleanTekkenId(gameId)) {
+                membersRef.child(k).child('fetchedStats').set(stats);
+                break;
+              }
+            }
+          }
+        }
       } catch (e) {
-        console.error('LocalStorage write error', e);
+        console.error('Stats cache write error', e);
       }
     }
 
@@ -2210,7 +2233,7 @@
       return { ratingMu: null, charGamesMap: {}, wavuLatestTs: null };
     }
 
-    async function fetchEwgfStats(gameId, forceRefresh = false) {
+    async function fetchEwgfStats(gameId, forceRefresh = false, memberKey = null) {
       const cleanId = cleanTekkenId(gameId);
       const cached = getLocalStats(cleanId);
 
@@ -2312,7 +2335,7 @@
             updatedAt: Date.now()
           };
 
-          setLocalStats(cleanId, statsData);
+          setLocalStats(cleanId, statsData, memberKey);
           return statsData;
         } else if (wavuData && wavuData.ratingMu !== null) {
           // ewgf記録がなくても wavu データが取れた場合
@@ -2328,7 +2351,7 @@
             isError: false,
             updatedAt: Date.now()
           };
-          setLocalStats(cleanId, wavuOnlyStats);
+          setLocalStats(cleanId, wavuOnlyStats, memberKey);
           return wavuOnlyStats;
         } else {
           const noBattleStats = {
@@ -2341,7 +2364,7 @@
             isError: false,
             updatedAt: Date.now()
           };
-          setLocalStats(cleanId, noBattleStats);
+          setLocalStats(cleanId, noBattleStats, memberKey);
           return noBattleStats;
         }
       } catch (err) {
@@ -2356,7 +2379,7 @@
           isError: true,
           updatedAt: Date.now()
         };
-        setLocalStats(cleanId, errorStats);
+        setLocalStats(cleanId, errorStats, memberKey);
         return errorStats;
       }
     }
@@ -2380,16 +2403,8 @@
       const radius = Math.min(width, height) / 2 - 22;
       const sides = 5;
 
-      // 本物の ewgf / 鉄拳8公式 5角形レーダーチャートの配置（頂点から時計回り）：
-      // 0: 12時(てっぺん) -> ATTACK (攻撃)
-      // 1: 右上           -> TECHNIQUE (技術)
-      // 2: 右下           -> APPEAL (魅力)
-      // 3: 左下           -> SPIRIT (精神)
-      // 4: 左上           -> DEFENSE (防御)
       const labels = ['ATTACK', 'TECH', 'APPEAL', 'SPIRIT', 'DEFENSE'];
 
-      // 自前のでっちあげプロット計算は完全全廃！
-      // ユーザーが手動編集 modal で入力・プロットした customStats のみ描画する
       let scores = null;
       if (stats && stats.customStats) {
         scores = [
@@ -2464,7 +2479,6 @@
         ctx.fill();
         ctx.stroke();
       } else {
-        // 自前推測でっちあげ全廃時のガイド表示
         ctx.font = '600 7px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -2475,9 +2489,10 @@
 
     async function refreshCardStats(gameId, key) {
       showToast(`🔄 ewgf API から ID[${gameId}] の対戦データを取得中...`);
-      const stats = await fetchEwgfStats(gameId, true);
+      const stats = await fetchEwgfStats(gameId, true, key);
       const container = document.getElementById(`stats_box_${key}`);
       if (container && stats) {
+        setLocalStats(cleanTekkenId(gameId), stats, key);
         const badgeWrapper = container.querySelector('.last-seen-badge-wrapper');
         if (badgeWrapper) {
           badgeWrapper.innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
@@ -2576,7 +2591,7 @@
         if (currentTheme === 'modern') defaultSubtitle = 'Member';
         if (currentTheme === 'japanese') defaultSubtitle = '手配者';
 
-        const cachedStats = getLocalStats(cleanGameId);
+        const cachedStats = getLocalStats(cleanGameId, m);
 
         card.innerHTML = `
           <div class="poster-pin"></div>
