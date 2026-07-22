@@ -2327,6 +2327,8 @@
       const charGamesMap = {};
       const charRatingMap = {};
       const charSigmaMap = {};
+      const qualifiedCharGamesMap = {};
+      const qualifiedCharRatingMap = {};
       const doc = new DOMParser().parseFromString(html, 'text/html');
       const ratingCards = doc.querySelectorAll('.rating');
 
@@ -2343,9 +2345,14 @@
         charGamesMap[charName] = Number(gamesMatch[1].replace(/,/g, ''));
         if (muMatch) charRatingMap[charName] = Number(muMatch[1].replace(/,/g, ''));
         if (sigmaMatch) charSigmaMap[charName] = Number(sigmaMatch[1].replace(/,/g, ''));
+        const groupLabel = card.closest('.rating-group')?.querySelector('.label')?.textContent || '';
+        if (/Leaderboard/i.test(groupLabel)) {
+          qualifiedCharGamesMap[charName] = charGamesMap[charName];
+          if (muMatch) qualifiedCharRatingMap[charName] = charRatingMap[charName];
+        }
       });
 
-      return { charGamesMap, charRatingMap, charSigmaMap };
+      return { charGamesMap, charRatingMap, charSigmaMap, qualifiedCharGamesMap, qualifiedCharRatingMap };
     }
 
     // wank.wavu.wiki から全キャラの試合数と μ を取得する。
@@ -2386,8 +2393,13 @@
               if (data.charSigmaMap) {
                 charSigmaMap = data.charSigmaMap;
               }
-              // Worker がマップを返した場合も、σ² < 75 を優先して表示値を決める。
-              const selected = selectWavuMain(charGamesMap, charRatingMap, charSigmaMap);
+              // Worker が Leaderboard グループを返した場合は、その中だけで選ぶ。
+              // 古いWavu HTMLでは σ 値の要素名が変わることがあるため、数値のclass名には依存しない。
+              const qualifiedGames = data.qualifiedCharGamesMap || {};
+              const qualifiedRatings = data.qualifiedCharRatingMap || {};
+              const selected = Object.keys(qualifiedGames).length > 0
+                ? selectWavuMain(qualifiedGames, qualifiedRatings)
+                : selectWavuMain(charGamesMap, charRatingMap, charSigmaMap);
               mainChar = selected.mainChar || mainChar;
               mainCharGames = selected.mainCharGames || mainCharGames;
               ratingMu = selected.ratingMu !== null ? selected.ratingMu : ratingMu;
@@ -2443,7 +2455,9 @@
             charGamesMap = parsedRatings.charGamesMap;
             charRatingMap = parsedRatings.charRatingMap;
             charSigmaMap = parsedRatings.charSigmaMap;
-            const selected = selectWavuMain(charGamesMap, charRatingMap, charSigmaMap);
+            const selected = Object.keys(parsedRatings.qualifiedCharGamesMap).length > 0
+              ? selectWavuMain(parsedRatings.qualifiedCharGamesMap, parsedRatings.qualifiedCharRatingMap)
+              : selectWavuMain(charGamesMap, charRatingMap, charSigmaMap);
             mainChar = selected.mainChar;
             mainCharGames = selected.mainCharGames;
             // 対象キャラの μ がなければ、対戦履歴から推定した値を残す。
