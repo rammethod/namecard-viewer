@@ -1822,6 +1822,11 @@
     let cropper = null;
     let currentTheme = 'wanted'; // 'wanted', 'modern', or 'japanese'
 
+    // === 12h自動更新の無限ループ防止フラグ ===
+    // setLocalStats → Firebase書込み → membersRef.on('value')再発火 → renderPosters再呼出 → fetchEwgfStats → setLocalStats → ... の連鎖を断つ
+    let isFetchingInBackground = false;  // バックグラウンドフェッチ中フラグ
+    let isOwnFirebaseWrite = false;      // 自分自身のsetLocalStatsによるFirebase書込み中フラグ
+
     function cleanTekkenId(rawId) {
       if (!rawId) return '';
       return rawId.replace(/[-ー−\s]/g, '').trim();
@@ -1892,6 +1897,13 @@
 
         membersRef.on('value', (snapshot) => {
           document.getElementById('loadingState').style.display = 'none';
+          // 自分自身のsetLocalStatsによるFirebase書込みの反射を無視（無限ループ防止）
+          if (isOwnFirebaseWrite) {
+            // fetchedStats更新のみの変更なので再描画をスキップ
+            // ただしcurrentMembersDataは最新に保つ
+            window.currentMembersData = snapshot.val();
+            return;
+          }
           renderPosters(snapshot.val());
         });
 
@@ -2064,20 +2076,31 @@
         localStorage.setItem(`${LOCAL_STATS_CACHE_KEY}_${gameId}`, JSON.stringify(stats));
 
         // Firebase に同期書き込みして全デバイスに即時リアルタイム伝播！
+        // ただし自分自身の書き込みで membersRef.on('value') が再発火して renderPosters が
+        // 連鎖呼出しされるのを防ぐため、isOwnFirebaseWrite フラグで保護する
         if (membersRef) {
+          isOwnFirebaseWrite = true;
+          const writePromises = [];
           if (memberKey) {
-            membersRef.child(memberKey).child('fetchedStats').set(stats);
+            writePromises.push(membersRef.child(memberKey).child('fetchedStats').set(stats));
           } else if (window.currentMembersData) {
             for (const [k, m] of Object.entries(window.currentMembersData)) {
               if (cleanTekkenId(m.gameId) === cleanTekkenId(gameId)) {
-                membersRef.child(k).child('fetchedStats').set(stats);
+                writePromises.push(membersRef.child(k).child('fetchedStats').set(stats));
                 break;
               }
             }
           }
+          // Firebase書込み完了後にフラグをリセット（他デバイスからの変更を正常に受信するため）
+          Promise.all(writePromises).then(() => {
+            setTimeout(() => { isOwnFirebaseWrite = false; }, 500);
+          }).catch(() => {
+            setTimeout(() => { isOwnFirebaseWrite = false; }, 500);
+          });
         }
       } catch (e) {
         console.error('Stats cache write error', e);
+        isOwnFirebaseWrite = false;
       }
     }
 
@@ -2794,27 +2817,39 @@
         grid.appendChild(card);
 
         // バックグラウンドでのデータ非同期フェッチ（12時間キャッシュ切れ時の自動取得 & Firebase全端末同期）
-        setTimeout(async () => {
-          let stats = getLocalStats(cleanGameId, m);
-          if (!stats || (Date.now() - (stats.cachedAt || 0) >= CACHE_TTL_MS) || stats.isError) {
-            stats = await fetchEwgfStats(cleanGameId, false, key, false, m.name);
-            const container = document.getElementById(`stats_box_${key}`);
-            if (container && stats) {
-              container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
-              const mainCharEl = container.querySelector('.val-main-char');
-              if (mainCharEl) {
-                const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
-                mainCharEl.innerHTML = `${escapeHtml(stats.mainChar || 'Unknown')}${gamesText}`;
+        // ※ isFetchingInBackground がtrueの場合はスキップ（on('value')再発火による二重フェッチ防止）
+        if (!isFetchingInBackground) {
+          const capturedKey = key;
+          const capturedCleanGameId = cleanGameId;
+          const capturedName = m.name;
+          const capturedMemberData = m;
+          setTimeout(async () => {
+            let stats = getLocalStats(capturedCleanGameId, capturedMemberData);
+            if (!stats || (Date.now() - (stats.cachedAt || 0) >= CACHE_TTL_MS) || stats.isError) {
+              isFetchingInBackground = true;
+              try {
+                stats = await fetchEwgfStats(capturedCleanGameId, false, capturedKey, false, capturedName);
+                const container = document.getElementById(`stats_box_${capturedKey}`);
+                if (container && stats) {
+                  container.querySelector('.last-seen-badge-wrapper').innerHTML = getLastSeenBadgeHtml(stats.lastSeenTimestamp);
+                  const mainCharEl = container.querySelector('.val-main-char');
+                  if (mainCharEl) {
+                    const gamesText = stats.mainCharGames ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px; font-weight:600;">(${stats.mainCharGames.toLocaleString()} games)</span>` : '';
+                    mainCharEl.innerHTML = `${escapeHtml(stats.mainChar || 'Unknown')}${gamesText}`;
+                  }
+                  const rankEl = container.querySelector('.val-rank');
+                  if (rankEl) rankEl.textContent = stats.danRank || '-';
+                  const ratingEl = container.querySelector('.val-rating');
+                  if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : 'データ取得中';
+                  const powerEl = container.querySelector('.val-power');
+                  if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
+                }
+              } finally {
+                isFetchingInBackground = false;
               }
-              const rankEl = container.querySelector('.val-rank');
-              if (rankEl) rankEl.textContent = stats.danRank || '-';
-              const ratingEl = container.querySelector('.val-rating');
-              if (ratingEl) ratingEl.textContent = stats.ratingMu !== null ? `μ ${stats.ratingMu} (${stats.mainChar || ''})` : 'データ取得中';
-              const powerEl = container.querySelector('.val-power');
-              if (powerEl) powerEl.textContent = stats.tekkenPower ? stats.tekkenPower.toLocaleString() : '-';
             }
-          }
-        }, 100);
+          }, 100);
+        }
       });
     }
 
