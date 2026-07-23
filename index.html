@@ -742,12 +742,15 @@
     }
 
     .last-seen-badge {
-      display: inline-grid;
-      grid-template-columns: auto auto 1fr;
+      display: grid;
+      width: 100%;
+      box-sizing: border-box;
+      grid-template-columns: auto auto auto;
       grid-template-areas:
         "icon label time"
         "icon exact exact";
       align-items: center;
+      justify-content: center;
       column-gap: 5px;
       row-gap: 2px;
       font-size: 0.72rem;
@@ -759,6 +762,10 @@
       white-space: nowrap;
     }
 
+    .last-seen-badge-wrapper {
+      width: 100%;
+    }
+
     .last-seen-label {
       grid-area: label;
       opacity: 0.78;
@@ -766,7 +773,12 @@
       font-weight: 600;
     }
 
-    .last-seen-icon { grid-area: icon; }
+    .last-seen-icon {
+      grid-area: icon;
+      font-size: 0.9rem;
+      line-height: 1;
+      transform: translateX(-3px);
+    }
 
     .last-seen-time {
       grid-area: time;
