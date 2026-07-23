@@ -27,7 +27,11 @@
   fetchEwgfStats = async function(gameId, forceRefresh = false, memberKey = null, isManual = false, targetName = '') {
     const id = cleanTekkenId(gameId);
     const cached = getLocalStats(id);
-    if (!forceRefresh && cached && cached.statsSource === 'ewgf-characters+wavu-mu' && Date.now() - (cached.cachedAt || 0) < CACHE_TTL_MS && !cached.isError) return cached;
+    // 同じ統合仕様(v6)の正常データは8時間再利用する。旧仕様のキャッシュはsource不一致で自動更新する。
+    if (!forceRefresh && cached && cached.statsSource === 'wavu-leaderboard-main+ewgf-character-v6'
+      && Date.now() - (cached.cachedAt || 0) < CACHE_TTL_MS && !cached.isError) {
+      return cached;
+    }
     incrementApiCallCounter();
     recordLastUpdateLog(isManual ? 'manual' : 'auto', targetName);
     try {
@@ -36,9 +40,9 @@
       const apiKey = getEwgfApiKey();
       const battlesUrl = `https://api.ewgf.gg/external/battles/${encodeURIComponent(id)}`;
       const [profile, wavu, battlesJson] = await Promise.all([
-        fetch(profileUrl).then(async r => { const d = await r.json(); if (!r.ok || !d.ok) throw new Error(d.error || `EWGF HTTP ${r.status}`); return d; }),
-        fetch(wavuUrl).then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error || `Wavu HTTP ${r.status}`); return d; }),
-        apiKey ? fetch(battlesUrl, { headers: { Authorization: `Bearer ${apiKey}` } }).then(async r => r.ok ? r.json() : null).catch(() => null) : null
+        fetch(profileUrl, { cache: 'no-store' }).then(async r => { const d = await r.json(); if (!r.ok || !d.ok) throw new Error(d.error || `EWGF HTTP ${r.status}`); return d; }),
+        fetch(wavuUrl, { cache: 'no-store' }).then(async r => { const d = await r.json(); if (!r.ok) throw new Error(d.error || `Wavu HTTP ${r.status}`); return d; }),
+        apiKey ? fetch(battlesUrl, { cache: 'no-store', headers: { Authorization: `Bearer ${apiKey}` } }).then(async r => r.ok ? r.json() : null).catch(() => null) : null
       ]);
       const selected = selectWavuLeaderboardMain(wavu);
       const ewgfCharacter = findEwgfCharacter(profile, selected.character);
@@ -55,7 +59,7 @@
         ratingMu:selected.ratingMu !== null ? selected.ratingMu : (cached ? cached.ratingMu : null), ratingCharacter:selected.character,
         tekkenPower:latest.power || (cached ? cached.tekkenPower : 0) || 0,
         lastSeenTimestamp:wavuTime || latest.timestamp || (cached ? cached.lastSeenTimestamp : null),
-        totalBattlesFetched:battles.length, statsSource:'wavu-leaderboard-main+ewgf-character-v5', isError:false, updatedAt:Date.now()
+        totalBattlesFetched:battles.length, statsSource:'wavu-leaderboard-main+ewgf-character-v6', isError:false, updatedAt:Date.now()
       };
       setLocalStats(id, stats, memberKey);
       queueEnhance();
@@ -75,7 +79,7 @@
     const id = cleanTekkenId(member.gameId);
     const stats = getLocalStats(id, member);
     if (!stats) return;
-    if (stats.statsSource !== 'wavu-leaderboard-main+ewgf-character-v5' && !pendingIds.has(id)) {
+    if (stats.statsSource !== 'wavu-leaderboard-main+ewgf-character-v6' && !pendingIds.has(id)) {
       pendingIds.add(id);
       fetchEwgfStats(id, false, key, false, member.name || '').finally(() => pendingIds.delete(id));
     }
