@@ -87,6 +87,16 @@
     if (main) {
       let image = main.querySelector('.stats-preview-character-icon');
       if (!image) { image = document.createElement('img'); image.className = 'stats-preview-character-icon'; main.prepend(image); }
+      let mainCopy = main.querySelector('.stats-preview-main-copy');
+      if (!mainCopy) {
+        mainCopy = document.createElement('div');
+        mainCopy.className = 'stats-preview-main-copy';
+        const existingName = main.querySelector('.val-main-char');
+        const existingGames = main.querySelector('.stats-preview-games');
+        if (existingName) mainCopy.append(existingName);
+        if (existingGames) mainCopy.append(existingGames);
+        main.append(mainCopy);
+      }
       image.src = stats.mainCharImage || '';
       image.alt = stats.mainChar ? `${stats.mainChar} icon` : '';
       image.hidden = !stats.mainCharImage;
