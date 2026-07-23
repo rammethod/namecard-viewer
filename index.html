@@ -736,8 +736,9 @@
     }
 
     body.theme-japanese .card-stats-container {
-      background: rgba(255, 255, 255, 0.65);
-      border: 1px solid rgba(99, 102, 241, 0.25);
+      background: rgba(248, 250, 255, 0.92);
+      border: 1px solid rgba(129, 140, 248, 0.48);
+      color: #1e1b4b;
     }
 
     .last-seen-badge {
@@ -883,7 +884,7 @@
 
     body.theme-japanese .card-refresh-btn {
       color: #312e81;
-      border-color: #6366f1;
+      border-color: #818cf8;
     }
 
     .card-refresh-btn:hover {
@@ -980,7 +981,23 @@
     body.theme-modern .stats-preview-eyebrow { color: #e9d5ff; }
     body.theme-modern .stats-preview-label { color: #c4b5fd; }
     body.theme-japanese .stats-preview-eyebrow { color: #312e81; text-shadow: none; }
-    body.theme-japanese .stats-preview-label { color: #4338ca; }
+    body.theme-japanese .stats-preview-label { color: #3730a3; }
+    body.theme-japanese .stats-preview-main,
+    body.theme-japanese .stats-preview-value { color: #1e1b4b; }
+    body.theme-japanese .stats-preview-metrics {
+      background: #eef2ff;
+      border-color: rgba(99, 102, 241, 0.42);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
+    }
+    body.theme-japanese .stats-preview-metric + .stats-preview-metric {
+      border-left-color: rgba(99, 102, 241, 0.3);
+    }
+    body.theme-japanese .stats-preview-badge {
+      background: #e0e7ff;
+      border-color: rgba(99, 102, 241, 0.5);
+      color: #312e81;
+    }
+    body.theme-japanese .card-refresh-btn:hover { background: rgba(129, 140, 248, 0.16); }
 
     @media (max-width: 420px) {
       .stats-preview-metric { padding: 7px 5px; }
@@ -1812,7 +1829,7 @@
           <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px;">
             <span id="apiQuotaText"
               style="font-size: 0.72rem; color: #ffffff; opacity: 0.95; font-weight: 600; background: rgba(0,0,0,0.55); padding: 3px 10px; border-radius: 12px; border: 1px solid var(--gold-accent);">
-              🔑 ewgf API 本日使用: 約0回 (残り 100/100回目安・12hキャッシュ)
+              🔑 ewgf API 本日使用: 約0回 (残り 100/100回目安・8hキャッシュ)
             </span>
             <span id="lastUpdateLogText"
               style="font-size: 0.68rem; color: #edd9b4; opacity: 0.9; font-weight: 600; background: rgba(0,0,0,0.55); padding: 2px 9px; border-radius: 10px; border: 1px dashed var(--gold-accent);">
@@ -1996,7 +2013,7 @@
     let cropper = null;
     let currentTheme = 'wanted'; // 'wanted', 'modern', or 'japanese'
 
-    // === 12h自動更新の無限ループ防止フラグ ===
+    // === 8h自動更新の無限ループ防止フラグ ===
     // setLocalStats → Firebase書込み → membersRef.on('value')再発火 → renderPosters再呼出 → fetchEwgfStats → setLocalStats → ... の連鎖を断つ
     let isFetchingInBackground = false;  // バックグラウンドフェッチ中フラグ
     let isOwnFirebaseWrite = false;      // 自分自身のsetLocalStatsによるFirebase書込み中フラグ
@@ -2215,7 +2232,7 @@
     /* ===== Prototype Stats & Radar Chart Logic (ewgf.gg Official API) ===== */
     const DEFAULT_EWGF_API_KEY = 'ewgf_48599735d7a64a109401945131210139';
     const LOCAL_STATS_CACHE_KEY = 't8_wanted_ewgf_stats_v3';
-    const CACHE_TTL_MS = 12 * 60 * 60 * 1000; // 1日100回制限対策: 12時間キャッシュ
+    const CACHE_TTL_MS = 8 * 60 * 60 * 1000; // 1日100回制限対策: 8時間キャッシュ
 
     function getEwgfApiKey() {
       return localStorage.getItem('t8_ewgf_api_key') || DEFAULT_EWGF_API_KEY;
@@ -2367,7 +2384,7 @@
         const localCount = getLocalCallCount();
         const savedCount = Math.max(count !== undefined ? count : 0, localCount);
         const remaining = Math.max(0, 100 - savedCount);
-        badge.textContent = `🔑 ewgf API 本日全体使用: 約${savedCount}回 (残り ${remaining}/100回目安・12hキャッシュ)`;
+        badge.textContent = `🔑 ewgf API 本日全体使用: 約${savedCount}回 (残り ${remaining}/100回目安・8hキャッシュ)`;
       }
     }
 
@@ -2385,7 +2402,7 @@
     function recordLastUpdateLog(updateType, targetName = '') {
       const ts = Date.now();
       const formattedTime = formatLogTime(ts);
-      const typeLabel = updateType === 'manual' ? '手動更新' : '12h自動更新';
+      const typeLabel = updateType === 'manual' ? '手動更新' : '8h自動更新';
       const targetStr = targetName ? ` (${targetName})` : '';
 
       const logData = {
@@ -2643,7 +2660,7 @@
       const cleanId = cleanTekkenId(gameId);
       const cached = getLocalStats(cleanId);
 
-      // 12時間以内のキャッシュがあり、強制的更新でなければそのまま返す (1日100回クォータの徹底節約)
+      // 8時間以内のキャッシュがあり、強制的更新でなければそのまま返す (1日100回クォータの徹底節約)
       if (!forceRefresh && cached && (Date.now() - (cached.cachedAt || 0) < CACHE_TTL_MS) && !cached.isError) {
         return cached;
       }
@@ -3091,7 +3108,7 @@
 
         grid.appendChild(card);
 
-        // バックグラウンドでのデータ非同期フェッチ（12時間キャッシュ切れ時の自動取得 & Firebase全端末同期）
+        // バックグラウンドでのデータ非同期フェッチ（8時間キャッシュ切れ時の自動取得 & Firebase全端末同期）
         // ※ isFetchingInBackground がtrueの場合はスキップ（on('value')再発火による二重フェッチ防止）
         if (!isFetchingInBackground) {
           const capturedKey = key;
