@@ -28,3 +28,5 @@ body.theme-japanese .poster-card::after{opacity:.11!important;filter:brightness(
 @media(hover:hover) and (pointer:fine){body.theme-japanese .poster-card:hover::after{opacity:.22!important}}
 @media(hover:none),(pointer:coarse){body.theme-japanese .poster-card.t8-foil-active::after{opacity:.25!important}}
 body.theme-japanese .id-box{background:rgba(23,20,72,.9)!important;border-color:rgba(224,231,255,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 3px 9px rgba(20,16,60,.2)}body.theme-japanese .id-box:hover{background:rgba(30,27,88,.96)!important;border-color:rgba(237,233,254,.52)}
+
+@media(max-width:420px){.stats-preview-metric-rank{text-align:center}.stats-preview-metric-rank .stats-preview-rank{width:100%;min-width:0;justify-content:center;overflow:hidden}.stats-preview-metric-rank .stats-preview-rank-icon{display:block;width:100%;max-width:72px;height:34px;flex:0 1 auto;object-fit:contain;object-position:center;margin:0 auto}}
