@@ -48,8 +48,8 @@
   function draw(canvas, data) {
     if (!canvas || !valid(data)) return;
     const rect = canvas.getBoundingClientRect();
-    const width = Math.max(220, Math.round(rect.width || 280));
-    const height = Math.max(190, Math.round(rect.height || 216));
+    const width = Math.max(150, Math.round(rect.width || 260));
+    const height = width;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
@@ -144,9 +144,17 @@
         const winRate = Number.isFinite(wins) && Number.isFinite(losses)
           ? wins / games * 100
           : null;
-        gamesElement.textContent = winRate === null
-          ? `· ${games.toLocaleString()} games`
-          : `· ${games.toLocaleString()} games · ${winRate.toFixed(1)}% WR`;
+        const gamesLine = document.createElement('span');
+        gamesLine.className = 'stats-preview-games-line';
+        gamesLine.textContent = `・${games.toLocaleString()} games`;
+        const lines = [gamesLine];
+        if (winRate !== null) {
+          const winRateLine = document.createElement('span');
+          winRateLine.className = 'stats-preview-games-line stats-preview-win-rate';
+          winRateLine.textContent = `・${winRate.toFixed(1)}% WR`;
+          lines.push(winRateLine);
+        }
+        gamesElement.replaceChildren(...lines);
       }
     }
 
