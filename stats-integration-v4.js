@@ -104,6 +104,38 @@
   let queued = false;
   function queueEnhance() { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; document.querySelectorAll('.card-stats-container').forEach(enhanceBox); }); }
   new MutationObserver(queueEnhance).observe(document.body, { childList:true, subtree:true });
+  document.addEventListener('pointermove', event => {
+    if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    const card = event.target.closest('.poster-card');
+    if (!card || !document.body.classList.contains('theme-japanese')) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--t8-foil-x', `${event.clientX - rect.left}px`);
+    card.style.setProperty('--t8-foil-y', `${event.clientY - rect.top}px`);
+  }, { passive: true });
+
+  let foilTimer = null;
+  document.addEventListener('click', event => {
+    if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+    const card = event.target.closest('.poster-card');
+    if (!card || !document.body.classList.contains('theme-japanese')) return;
+    if (event.target.closest('a, button, input, select, textarea, [onclick]')) return;
+    const rect = card.getBoundingClientRect();
+    card.style.setProperty('--t8-foil-x', `${event.clientX - rect.left}px`);
+    card.style.setProperty('--t8-foil-y', `${event.clientY - rect.top}px`);
+    document.querySelectorAll('.poster-card.t8-foil-active').forEach(item => item.classList.remove('t8-foil-active'));
+    card.classList.add('t8-foil-active');
+    clearTimeout(foilTimer);
+    foilTimer = setTimeout(() => card.classList.remove('t8-foil-active'), 1800);
+  });
+  document.addEventListener('click', event => {
+    if (!window.matchMedia('(hover: none), (pointer: coarse)').matches) return;
+    const card = event.target.closest('.poster-card');
+    if (!card || !document.body.classList.contains('theme-modern')) return;
+    if (event.target.closest('a, button, input, select, textarea, [onclick]')) return;
+    const willActivate = !card.classList.contains('t8-neon-active');
+    document.querySelectorAll('.poster-card.t8-neon-active').forEach(item => item.classList.remove('t8-neon-active'));
+    if (willActivate) card.classList.add('t8-neon-active');
+  });
   window.addEventListener('load', queueEnhance);
   queueEnhance();
 })();
