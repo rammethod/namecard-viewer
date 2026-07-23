@@ -742,16 +742,42 @@
     }
 
     .last-seen-badge {
-      display: inline-flex;
+      display: inline-grid;
+      grid-template-columns: auto auto 1fr;
+      grid-template-areas:
+        "icon label time"
+        "icon exact exact";
       align-items: center;
-      justify-content: center;
-      gap: 5px;
+      column-gap: 5px;
+      row-gap: 2px;
       font-size: 0.72rem;
       font-weight: 700;
       padding: 3px 10px;
       border-radius: 12px;
       margin-bottom: 6px;
       letter-spacing: 0.3px;
+      white-space: nowrap;
+    }
+
+    .last-seen-label {
+      grid-area: label;
+      opacity: 0.78;
+      font-size: 0.65rem;
+      font-weight: 600;
+    }
+
+    .last-seen-icon { grid-area: icon; }
+
+    .last-seen-time {
+      grid-area: time;
+      font-weight: 800;
+    }
+
+    .last-seen-exact {
+      grid-area: exact;
+      opacity: 0.8;
+      font-size: 0.61rem;
+      font-variant-numeric: tabular-nums;
     }
 
     .last-seen-badge.active {
@@ -1489,6 +1515,75 @@
       color: #fff;
       border-color: var(--text-red);
     }
+
+    /* Theme-aware member editor, cropper, and confirmation dialogs */
+    body.theme-modern .modal-overlay {
+      background: rgba(2, 6, 23, 0.82);
+    }
+
+    body.theme-modern .modal-wood {
+      background: linear-gradient(145deg, #172554, #2e1065);
+      border-color: #a78bfa;
+      color: #e0e7ff;
+      box-shadow: 0 24px 70px rgba(2, 6, 23, 0.82);
+    }
+
+    body.theme-modern .modal-title,
+    body.theme-modern .form-label { color: #c4b5fd; }
+    body.theme-modern .form-note,
+    body.theme-modern .drop-hint { color: #cbd5e1; }
+    body.theme-modern .modal-wood input[type="text"],
+    body.theme-modern .modal-wood input[type="url"],
+    body.theme-modern .modal-wood select,
+    body.theme-modern .modal-wood textarea {
+      background-color: #0f172a !important;
+      border-color: rgba(167, 139, 250, 0.55) !important;
+      color: #f8fafc !important;
+      -webkit-text-fill-color: #f8fafc !important;
+    }
+    body.theme-modern .form-input:focus { border-color: #a78bfa !important; box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.2); }
+    body.theme-modern .drop-zone { background: rgba(15, 23, 42, 0.72); border-color: #818cf8; }
+    body.theme-modern .drop-zone.dragover { background: rgba(129, 140, 248, 0.16); border-color: #c4b5fd; }
+    body.theme-modern .photo-preview { border-color: #a78bfa; color: #c4b5fd; }
+    body.theme-modern .file-input-btn { background: rgba(167, 139, 250, 0.16); border-color: #a78bfa; color: #e9d5ff; }
+    body.theme-modern .color-swatch.selected { border-color: #c4b5fd; }
+    body.theme-modern .btn-wood { border-color: #a78bfa; }
+    body.theme-modern .btn-cancel { color: #e0e7ff; }
+    body.theme-modern .btn-save { background: #8b5cf6; border-color: #8b5cf6; color: #fff; }
+
+    body.theme-japanese .modal-overlay {
+      background: rgba(30, 27, 75, 0.58);
+    }
+
+    body.theme-japanese .modal-wood {
+      background: linear-gradient(160deg, #fafaff, #eef2ff);
+      border-color: #818cf8;
+      color: #1e1b4b;
+      box-shadow: 0 24px 70px rgba(49, 46, 129, 0.35);
+    }
+
+    body.theme-japanese .modal-title,
+    body.theme-japanese .form-label { color: #3730a3; }
+    body.theme-japanese .form-note,
+    body.theme-japanese .drop-hint { color: #4f46a5; }
+    body.theme-japanese .modal-wood input[type="text"],
+    body.theme-japanese .modal-wood input[type="url"],
+    body.theme-japanese .modal-wood select,
+    body.theme-japanese .modal-wood textarea {
+      background-color: #ffffff !important;
+      border-color: rgba(99, 102, 241, 0.52) !important;
+      color: #1e1b4b !important;
+      -webkit-text-fill-color: #1e1b4b !important;
+    }
+    body.theme-japanese .form-input:focus { border-color: #4f46e5 !important; box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.16); }
+    body.theme-japanese .drop-zone { background: #f8faff; border-color: #818cf8; }
+    body.theme-japanese .drop-zone.dragover { background: #e0e7ff; border-color: #4f46e5; }
+    body.theme-japanese .photo-preview { border-color: #6366f1; color: #4338ca; background: #e0e7ff; }
+    body.theme-japanese .file-input-btn { background: #e0e7ff; border-color: #818cf8; color: #3730a3; }
+    body.theme-japanese .color-swatch.selected { border-color: #4f46e5; }
+    body.theme-japanese .btn-wood { border-color: #818cf8; }
+    body.theme-japanese .btn-cancel { color: #3730a3; }
+    body.theme-japanese .btn-save { background: #4f46e5; border-color: #4f46e5; color: #fff; }
 
     .toast {
       position: fixed;
@@ -2321,19 +2416,19 @@
 
     function getLastSeenBadgeHtml(ts) {
       if (!ts) {
-        return `<div class="last-seen-badge inactive">❓ 最終対戦: データ未取得</div>`;
+        return `<div class="last-seen-badge inactive"><span class="last-seen-icon">❓</span><span class="last-seen-label">最終対戦</span><span class="last-seen-time">データ未取得</span></div>`;
       }
       const diffHour = (Date.now() - ts) / (1000 * 3600);
       const timeStr = formatTimeAgo(ts);
       const exactStr = formatExactDateTime(ts);
-      const dateDisp = exactStr ? `<span style="font-size:0.65rem; opacity:0.85; margin-left:2px;">(${exactStr})</span>` : '';
+      const badgeContent = (icon) => `<span class="last-seen-icon">${icon}</span><span class="last-seen-label">最終対戦</span><span class="last-seen-time">${timeStr}</span><span class="last-seen-exact">${exactStr}</span>`;
 
       if (diffHour <= 24) {
-        return `<div class="last-seen-badge active" title="最新対戦日時: ${exactStr}">🔥 最終対戦: ${timeStr} ${dateDisp}</div>`;
+        return `<div class="last-seen-badge active" title="最新対戦日時: ${exactStr}">${badgeContent('🔥')}</div>`;
       } else if (diffHour <= 168) {
-        return `<div class="last-seen-badge recent" title="最新対戦日時: ${exactStr}">⚡ 最終対戦: ${timeStr} ${dateDisp}</div>`;
+        return `<div class="last-seen-badge recent" title="最新対戦日時: ${exactStr}">${badgeContent('⚡')}</div>`;
       } else {
-        return `<div class="last-seen-badge inactive" title="最新対戦日時: ${exactStr}">💤 最終対戦: ${timeStr} ${dateDisp}</div>`;
+        return `<div class="last-seen-badge inactive" title="最新対戦日時: ${exactStr}">${badgeContent('💤')}</div>`;
       }
     }
 
