@@ -3529,7 +3529,22 @@
       const integrationScript = document.createElement('script');
       integrationScript.src = `stats-integration-v4.js?v=${Date.now()}`;
       integrationScript.async = false;
-      integrationScript.onload = () => init();
+      integrationScript.onload = () => {
+        const pentagonStylesheet = document.createElement('link');
+        pentagonStylesheet.rel = 'stylesheet';
+        pentagonStylesheet.href = `stats-pentagon-prototype.css?v=${Date.now()}`;
+        document.head.appendChild(pentagonStylesheet);
+
+        const pentagonScript = document.createElement('script');
+        pentagonScript.src = `stats-pentagon-prototype.js?v=${Date.now()}`;
+        pentagonScript.async = false;
+        pentagonScript.onload = () => init();
+        pentagonScript.onerror = () => {
+          console.warn('Stat Pentagon prototype failed to load');
+          init();
+        };
+        document.body.appendChild(pentagonScript);
+      };
       integrationScript.onerror = () => { console.warn('Integration script failed to load'); init(); };
       document.body.appendChild(integrationScript);
     })();
