@@ -1911,7 +1911,7 @@
 
   </style>
   <script>
-    // UI assets always bypass the browser HTTP cache; stats API data keeps its separate 8h cache.
+    // UI assets always bypass the browser HTTP cache; stats data keeps its separate 1h cache.
     (() => {
       const assetVersion = Date.now();
       const stylesheet = document.createElement('link');
@@ -2348,7 +2348,7 @@
     /* ===== Prototype Stats & Radar Chart Logic (ewgf.gg Official API) ===== */
     const DEFAULT_EWGF_API_KEY = 'ewgf_48599735d7a64a109401945131210139';
     const LOCAL_STATS_CACHE_KEY = 't8_wanted_ewgf_stats_v3';
-    const CACHE_TTL_MS = 8 * 60 * 60 * 1000; // 1日100回制限対策: 8時間キャッシュ
+    const CACHE_TTL_MS = 60 * 60 * 1000; // 自動更新: 1時間キャッシュ
 
     function getEwgfApiKey() {
       return localStorage.getItem('t8_ewgf_api_key') || DEFAULT_EWGF_API_KEY;
@@ -2776,7 +2776,7 @@
       const cleanId = cleanTekkenId(gameId);
       const cached = getLocalStats(cleanId);
 
-      // 8時間以内のキャッシュがあり、強制的更新でなければそのまま返す (1日100回クォータの徹底節約)
+      // 1時間以内のキャッシュがあり、強制的更新でなければそのまま返す (1日100回クォータの徹底節約)
       if (!forceRefresh && cached && (Date.now() - (cached.cachedAt || 0) < CACHE_TTL_MS) && !cached.isError) {
         return cached;
       }
@@ -3224,7 +3224,7 @@
 
         grid.appendChild(card);
 
-        // バックグラウンドでのデータ非同期フェッチ（8時間キャッシュ切れ時の自動取得 & Firebase全端末同期）
+        // バックグラウンドでのデータ非同期フェッチ（1時間キャッシュ切れ時の自動取得 & Firebase全端末同期）
         // ※ isFetchingInBackground がtrueの場合はスキップ（on('value')再発火による二重フェッチ防止）
         if (!isFetchingInBackground) {
           const capturedKey = key;
