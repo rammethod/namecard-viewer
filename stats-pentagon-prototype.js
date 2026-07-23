@@ -132,6 +132,24 @@
     if (!member) return;
     const id = cleanTekkenId(member.gameId);
     const stats = getLocalStats(id, member);
+
+    if (stats) {
+      const wins = Number(stats.wins);
+      const losses = Number(stats.losses);
+      const games = Number.isFinite(wins) && Number.isFinite(losses)
+        ? wins + losses
+        : Number(stats.mainCharGames);
+      const gamesElement = box.querySelector('.stats-preview-games');
+      if (gamesElement && Number.isFinite(games) && games > 0) {
+        const winRate = Number.isFinite(wins) && Number.isFinite(losses)
+          ? wins / games * 100
+          : null;
+        gamesElement.textContent = winRate === null
+          ? `· ${games.toLocaleString()} games`
+          : `· ${games.toLocaleString()} games · ${winRate.toFixed(1)}% WR`;
+      }
+    }
+
     let panel = box.nextElementSibling;
     if (!panel || !panel.classList.contains('stat-pentagon-card')) panel = null;
 
